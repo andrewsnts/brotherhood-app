@@ -28,6 +28,7 @@ export default function WeekSetupPage() {
   const [goals, setGoals] = useState<MemberGoals | null>(null);
   const [newName, setNewName] = useState("");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"goals" | "members">("goals");
   const weekKey = getWeekKey(new Date());
@@ -45,6 +46,20 @@ export default function WeekSetupPage() {
   }
 
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-save 1s after any change
+  useEffect(() => {
+    if (!goals || loading) return;
+    setSaved(false);
+    setSaving(true);
+    const timer = setTimeout(async () => {
+      await saveGoals(goals);
+      setSaving(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1500);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [goals]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function selectMember(id: string) {
     setSelectedId(id);
@@ -110,13 +125,6 @@ export default function WeekSetupPage() {
     setSaved(false);
   }
 
-  async function handleSave() {
-    if (goals) {
-      await saveGoals(goals);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    }
-  }
 
   const selectedMember = members.find((m) => m.id === selectedId);
   const batteryPct = goals ? calcBatteryPercent(goals.battery) : 0;
@@ -250,9 +258,10 @@ export default function WeekSetupPage() {
                   </div>
                 </Section>
 
-                <button onClick={handleSave} className={`w-full py-3.5 rounded-2xl font-semibold text-[15px] transition-colors ${saved ? "bg-emerald-500 text-white" : "bg-[#7c6af7] text-white hover:bg-[#6c5ae7]"}`}>
-                  {saved ? "Saved!" : "Save Goals"}
-                </button>
+                <div className="flex items-center justify-center py-2 h-8">
+                  {saving && <p className="text-[13px] text-[#6b7280]">Saving...</p>}
+                  {saved && !saving && <p className="text-[13px] text-emerald-400">Saved</p>}
+                </div>
               </div>
             ) : (
               <p className="text-[#4b5563] text-sm text-center py-10">Add members to get started.</p>

@@ -16,7 +16,36 @@ export async function GET(req: NextRequest) {
       SELECT * FROM member_goals WHERE member_id = ${memberId} AND week_key = ${weekKey} LIMIT 1
     `;
 
-    if (rows.length === 0) return NextResponse.json(null);
+    // No goals for this week — inherit monthly/yearEnd from most recent previous week
+    if (rows.length === 0) {
+      const prev = await sql`
+        SELECT * FROM member_goals
+        WHERE member_id = ${memberId} AND week_key < ${weekKey}
+        ORDER BY week_key DESC LIMIT 1
+      `;
+      if (prev.length === 0) return NextResponse.json(null);
+      const p = prev[0];
+      return NextResponse.json({
+        memberId,
+        weekKey,
+        primary: "",
+        secondary: "",
+        bonus: "",
+        yearEnd: [p.year_end_1, p.year_end_2, p.year_end_3],
+        monthly: [p.monthly_1, p.monthly_2, p.monthly_3],
+        battery: {
+          purposeClarity: p.battery_purpose_clarity,
+          timeManagement: p.battery_time_management,
+          personalGrowth: p.battery_personal_growth,
+          fitness: p.battery_fitness,
+          nutrition: p.battery_nutrition,
+          sleep: p.battery_sleep,
+          community: p.battery_community,
+          family: p.battery_family,
+          financialWellbeing: p.battery_financial_wellbeing,
+        },
+      });
+    }
 
     const r = rows[0];
     return NextResponse.json({

@@ -57,6 +57,12 @@ export async function getGoals(memberId: string, weekKey: string): Promise<Membe
   return data;
 }
 
+export async function getAllGoalsForMember(memberId: string): Promise<MemberGoals[]> {
+  const res = await fetch(`/api/goals/all?memberId=${memberId}`);
+  if (!res.ok) return [];
+  return res.json();
+}
+
 export async function saveGoals(goals: MemberGoals): Promise<void> {
   const res = await fetch("/api/goals", {
     method: "POST",

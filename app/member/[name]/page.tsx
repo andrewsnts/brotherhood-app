@@ -142,7 +142,7 @@ export default function MemberPage({
 
               <Card className="bg-gray-900 border-gray-700">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm text-gray-400">Monthly Goals</CardTitle>
+                  <CardTitle className="text-sm text-gray-400">Quarterly Goals</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ol className="space-y-1">

@@ -133,7 +133,7 @@ function MemberCard({ member, goals, battery }: { member: Member; goals: MemberG
 
       <div className="h-px bg-white/[0.05] mx-5" />
 
-      <Section label="MONTHLY">
+      <Section label="QUARTERLY">
         {hasMonthly ? (
           <ol className="space-y-2">
             {goals.monthly.map((g, i) => g ? (

@@ -220,7 +220,7 @@ export default function SetupPage() {
 
                 <Card className="bg-gray-900 border-gray-700">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base text-white">Monthly Goals</CardTitle>
+                    <CardTitle className="text-base text-white">Quarterly Goals</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {goals.monthly.map((val, i) => (

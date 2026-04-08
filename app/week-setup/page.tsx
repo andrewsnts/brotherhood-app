@@ -213,7 +213,7 @@ export default function WeekSetupPage() {
                   </div>
                 </Section>
 
-                <Section label="MONTHLY GOALS">
+                <Section label="QUARTERLY GOALS">
                   <div className="space-y-2">
                     {goals.monthly.map((val, i) => (
                       <div key={i} className="flex items-center gap-2">

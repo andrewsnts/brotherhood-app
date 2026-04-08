@@ -208,7 +208,7 @@ function WeekRow({ entry, member }: { entry: WeekEntry; member: Member }) {
           {/* Monthly goals */}
           {goals && goals.monthly.some((g) => g) && (
             <div>
-              <p className="text-[10px] font-bold text-[#4b5563] tracking-widest uppercase mb-2">Monthly Goals</p>
+              <p className="text-[10px] font-bold text-[#4b5563] tracking-widest uppercase mb-2">Quarterly Goals</p>
               <ol className="space-y-1">
                 {goals.monthly.map((g, i) => g ? (
                   <li key={i} className="flex gap-2 text-[13px] text-[#c9cdd8]">

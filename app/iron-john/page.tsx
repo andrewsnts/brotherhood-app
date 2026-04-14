@@ -195,16 +195,16 @@ const SCHEDULE: WeekData[] = [
 ];
 
 // ── Current Session Detection ──────────────────────────────
-// Group started Tuesday April 1, 2026
+// Group started March 30, 2026 — first session Tuesday March 31
 // Sessions: Tuesday + Thursday each week
 
-const GROUP_START = new Date("2026-04-01T00:00:00");
+const FIRST_TUESDAY = new Date("2026-03-31T00:00:00");
 
 function getCurrentSession(): { week: number; idx: number } {
   const now = new Date();
   for (let w = 1; w <= 8; w++) {
-    const tue = new Date(GROUP_START);
-    tue.setDate(GROUP_START.getDate() + (w - 1) * 7);
+    const tue = new Date(FIRST_TUESDAY);
+    tue.setDate(FIRST_TUESDAY.getDate() + (w - 1) * 7);
     const thu = new Date(tue);
     thu.setDate(tue.getDate() + 2);
     const nextTue = new Date(tue);

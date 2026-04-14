@@ -97,8 +97,8 @@ export function getWeekKey(date: Date): string {
   return `${d.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
 }
 
-// Group started April 1, 2026 — Week 1 = that week
-const GROUP_START = new Date("2026-04-01T00:00:00");
+// Group started March 30, 2026 — Week 1 = that week (Day 16 = April 14)
+const GROUP_START = new Date("2026-03-30T00:00:00");
 
 export function getGroupWeekNumber(date: Date): number {
   const msPerWeek = 7 * 24 * 60 * 60 * 1000;

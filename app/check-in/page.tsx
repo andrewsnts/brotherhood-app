@@ -49,6 +49,7 @@ export default function CheckInPage() {
   const [feeling, setFeeling] = useState("");
   const [existingCheckIn, setExistingCheckIn] = useState<DailyCheckIn | null>(null);
   const [todayMap, setTodayMap] = useState<Record<string, boolean>>({});
+  const [showBorat, setShowBorat] = useState(false);
 
   useEffect(() => {
     async function init() {
@@ -123,6 +124,8 @@ export default function CheckInPage() {
   const batteryPct = calcBatteryPercent(battery);
 
   return (
+    <>
+    {showBorat && <BoratPopup onDone={() => setShowBorat(false)} />}
     <div className="min-h-screen bg-background pb-28">
       <div className="max-w-lg mx-auto">
       <div className="px-5 pt-8 pb-5">
@@ -204,13 +207,13 @@ export default function CheckInPage() {
             <StepHeader member={selectedMember} title="Goals Review" subtitle="How did your weekly goals go?" onBack={() => setStep("battery")} />
             <div className="space-y-3 mt-4">
               {goals.primary && (
-                <GoalDropdown tier="Primary" text={goals.primary} color="#7c6af7" status={primaryStatus} onChange={setPrimaryStatus} />
+                <GoalDropdown tier="Primary" text={goals.primary} color="#7c6af7" status={primaryStatus} onChange={setPrimaryStatus} onCompleted={() => setShowBorat(true)} />
               )}
               {goals.secondary && (
-                <GoalDropdown tier="Secondary" text={goals.secondary} color="#a855f7" status={secondaryStatus} onChange={setSecondaryStatus} />
+                <GoalDropdown tier="Secondary" text={goals.secondary} color="#a855f7" status={secondaryStatus} onChange={setSecondaryStatus} onCompleted={() => setShowBorat(true)} />
               )}
               {goals.bonus && (
-                <GoalDropdown tier="Bonus" text={goals.bonus} color="#eab308" status={bonusStatus} onChange={setBonusStatus} />
+                <GoalDropdown tier="Bonus" text={goals.bonus} color="#eab308" status={bonusStatus} onChange={setBonusStatus} onCompleted={() => setShowBorat(true)} />
               )}
               {!goals.primary && !goals.secondary && !goals.bonus && (
                 <p className="text-dimmer text-sm text-center py-6">No goals set for this week. Set them in Goal Setup.</p>
@@ -259,6 +262,7 @@ export default function CheckInPage() {
 
       <BottomNav />
     </div>
+    </>
   );
 }
 
@@ -295,7 +299,27 @@ const STATUS_COLOR: Record<GoalStatus, string> = {
   not_done: "#6b7280",
 };
 
-function GoalDropdown({ tier, text, color, status, onChange }: { tier: string; text: string; color: string; status: GoalStatus; onChange: (v: GoalStatus) => void }) {
+function BoratPopup({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3000);
+    return () => clearTimeout(t);
+  }, [onDone]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70"
+      onClick={onDone}
+    >
+      <div className="flex flex-col items-center gap-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/borat.gif" alt="Very nice!" className="max-w-[320px] w-full rounded-2xl shadow-2xl" />
+        <p className="text-white font-black text-[28px] tracking-wide drop-shadow-lg">VERY NICE!</p>
+      </div>
+    </div>
+  );
+}
+
+function GoalDropdown({ tier, text, color, status, onChange, onCompleted }: { tier: string; text: string; color: string; status: GoalStatus; onChange: (v: GoalStatus) => void; onCompleted: () => void }) {
   const current = GOAL_STATUS_OPTIONS.find((o) => o.value === status) ?? GOAL_STATUS_OPTIONS[2];
   return (
     <div className={`rounded-xl px-4 py-3.5 border ${current.bg}`}>
@@ -306,7 +330,11 @@ function GoalDropdown({ tier, text, color, status, onChange }: { tier: string; t
         </div>
         <select
           value={status}
-          onChange={(e) => onChange(e.target.value as GoalStatus)}
+          onChange={(e) => {
+            const v = e.target.value as GoalStatus;
+            onChange(v);
+            if (v === "completed") onCompleted();
+          }}
           className="shrink-0 bg-background border border-input rounded-lg px-2 py-1.5 text-[12px] font-semibold outline-none cursor-pointer"
           style={{ color: STATUS_COLOR[status] }}
         >

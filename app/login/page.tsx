@@ -30,7 +30,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0f14] flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-sm">
         {/* Logo / title */}
         <div className="text-center mb-10">
@@ -41,14 +41,14 @@ export default function LoginPage() {
               <circle cx="12" cy="12" r="2" />
             </svg>
           </div>
-          <h1 className="text-[24px] font-bold text-white">Brotherhood</h1>
-          <p className="text-[14px] text-[#8b93a7] mt-1">Deep Work Accountability</p>
+          <h1 className="text-[24px] font-bold text-foreground">Brotherhood</h1>
+          <p className="text-[14px] text-muted-foreground mt-1">Deep Work Accountability</p>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-[#161922] rounded-2xl px-4 py-3">
-            <label className="text-[11px] font-semibold text-[#6b7280] tracking-widest uppercase block mb-2">
+          <div className="bg-card rounded-2xl px-4 py-3">
+            <label className="text-[11px] font-semibold text-dim tracking-widest uppercase block mb-2">
               Password
             </label>
             <input
@@ -57,7 +57,7 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
               autoFocus
-              className="w-full bg-transparent text-[16px] text-white placeholder:text-[#4b5563] outline-none"
+              className="w-full bg-transparent text-[16px] text-foreground placeholder:text-placeholder outline-none"
             />
           </div>
 

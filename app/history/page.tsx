@@ -24,7 +24,6 @@ export default function HistoryPage() {
       const [m, allCheckIns] = await Promise.all([getMembers(), getAllCheckIns()]);
       setMembers(m);
 
-      // For each member, get all their goal weeks + match check-ins to weeks
       const allEntries: WeekEntry[] = [];
 
       await Promise.all(
@@ -32,10 +31,8 @@ export default function HistoryPage() {
           const goals = await getAllGoalsForMember(member.id);
           const memberCheckIns = allCheckIns.filter((c) => c.memberId === member.id);
 
-          // Build a set of all week keys that have goals
           const weekKeys = new Set(goals.map((g) => g.weekKey));
 
-          // Also include weeks that have check-ins but no goals
           for (const ci of memberCheckIns) {
             const d = new Date(ci.date + "T12:00:00");
             const wk = getWeekKey(d);
@@ -44,7 +41,6 @@ export default function HistoryPage() {
 
           for (const weekKey of weekKeys) {
             const goal = goals.find((g) => g.weekKey === weekKey) ?? null;
-            // Find the most recent check-in within that week
             const checkIn =
               memberCheckIns
                 .filter((c) => getWeekKey(new Date(c.date + "T12:00:00")) === weekKey)
@@ -55,7 +51,6 @@ export default function HistoryPage() {
         })
       );
 
-      // Sort by weekKey desc then by member name
       allEntries.sort((a, b) =>
         b.weekKey !== a.weekKey
           ? b.weekKey.localeCompare(a.weekKey)
@@ -75,7 +70,6 @@ export default function HistoryPage() {
       ? entries
       : entries.filter((e) => e.memberId === filterMemberId);
 
-  // Group by weekKey
   const byWeek: Record<string, WeekEntry[]> = {};
   for (const e of filtered) {
     if (!byWeek[e.weekKey]) byWeek[e.weekKey] = [];
@@ -84,11 +78,11 @@ export default function HistoryPage() {
   const sortedWeeks = Object.keys(byWeek).sort((a, b) => b.localeCompare(a));
 
   return (
-    <div className="min-h-screen bg-[#0d0f14] pb-28">
+    <div className="min-h-screen bg-background pb-28">
       <div className="max-w-lg mx-auto">
         <div className="px-5 pt-8 pb-5">
-          <h2 className="text-[32px] font-bold text-white leading-none">History</h2>
-          <p className="text-[13px] text-[#8b93a7] mt-2">Goals & check-ins by week</p>
+          <h2 className="text-[32px] font-bold text-foreground leading-none">History</h2>
+          <p className="text-[13px] text-muted-foreground mt-2">Goals & check-ins by week</p>
         </div>
 
         <div className="flex gap-2 px-4 flex-wrap">
@@ -99,15 +93,15 @@ export default function HistoryPage() {
         </div>
 
         <div className="px-4 mt-4 space-y-6">
-          {loading && <p className="text-[#4b5563] text-sm text-center py-16">Loading...</p>}
+          {loading && <p className="text-dimmer text-sm text-center py-16">Loading...</p>}
 
           {!loading && sortedWeeks.length === 0 && (
-            <p className="text-[#4b5563] text-sm text-center py-16">No goals set yet. Set them in Goal Setup.</p>
+            <p className="text-dimmer text-sm text-center py-16">No goals set yet. Set them in Goal Setup.</p>
           )}
 
           {!loading && sortedWeeks.map((weekKey) => (
             <div key={weekKey}>
-              <p className="text-[12px] font-bold text-[#8b93a7] tracking-widest uppercase mb-2">{weekKey}</p>
+              <p className="text-[12px] font-bold text-muted-foreground tracking-widest uppercase mb-2">{weekKey}</p>
               <div className="space-y-2">
                 {byWeek[weekKey].map((entry) => {
                   const member = memberMap[entry.memberId];
@@ -138,7 +132,7 @@ function getWeekKey(date: Date): string {
 
 function FilterPill({ label, active, onClick, color }: { label: string; active: boolean; onClick: () => void; color?: string }) {
   return (
-    <button onClick={onClick} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors ${active ? "bg-[#7c6af7] text-white" : "bg-[#161922] text-[#8b93a7] hover:text-white"}`}>
+    <button onClick={onClick} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors ${active ? "bg-[#7c6af7] text-white" : "bg-card text-muted-foreground hover:text-foreground"}`}>
       {color && <span className={`w-3.5 h-3.5 rounded-full ${color} inline-block`} />}
       {label}
     </button>
@@ -156,17 +150,17 @@ function WeekRow({ entry, member }: { entry: WeekEntry; member: Member }) {
   const hasWeeklyGoals = goals && (goals.primary || goals.secondary || goals.bonus);
 
   return (
-    <div className="bg-[#161922] rounded-2xl overflow-hidden">
+    <div className="bg-card rounded-2xl overflow-hidden">
       <button onClick={() => setExpanded((v) => !v)} className="w-full flex items-center gap-3 px-4 py-3.5 text-left">
         <div className={`w-9 h-9 rounded-full ${AVATAR_BG[member.color] ?? "bg-indigo-600"} flex items-center justify-center text-white font-bold text-[14px] shrink-0`}>
           {member.name[0].toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-white font-semibold text-[15px]">{member.name}</p>
-          <p className="text-[12px] text-[#8b93a7] mt-0.5">
+          <p className="text-foreground font-semibold text-[15px]">{member.name}</p>
+          <p className="text-[12px] text-muted-foreground mt-0.5">
             {hasCheckIn
               ? <>Check-in · Battery <span style={{ color: batteryColor }}>{checkIn!.batteryPercent}%</span></>
-              : <span className="text-[#4b5563]">Goals only — no check-in</span>
+              : <span className="text-dimmer">Goals only — no check-in</span>
             }
           </p>
         </div>
@@ -177,11 +171,11 @@ function WeekRow({ entry, member }: { entry: WeekEntry; member: Member }) {
       </button>
 
       {expanded && (
-        <div className="border-t border-white/[0.05] px-4 py-3 space-y-4">
+        <div className="border-t border-border px-4 py-3 space-y-4">
           {/* Weekly goals */}
           {hasWeeklyGoals && (
             <div>
-              <p className="text-[10px] font-bold text-[#4b5563] tracking-widest uppercase mb-2">Weekly Goals</p>
+              <p className="text-[10px] font-bold text-dimmer tracking-widest uppercase mb-2">Weekly Goals</p>
               <div className="space-y-1.5">
                 {goals!.primary && <GoalLine tier="Primary" text={goals!.primary} color="#7c6af7" />}
                 {goals!.secondary && <GoalLine tier="Secondary" text={goals!.secondary} color="#a855f7" />}
@@ -193,7 +187,7 @@ function WeekRow({ entry, member }: { entry: WeekEntry; member: Member }) {
           {/* Check-in results */}
           {hasCheckIn && (
             <div>
-              <p className="text-[10px] font-bold text-[#4b5563] tracking-widest uppercase mb-2">Check-in</p>
+              <p className="text-[10px] font-bold text-dimmer tracking-widest uppercase mb-2">Check-in</p>
               <div className="space-y-1.5">
                 <GoalStatusRow label="Primary" status={checkIn!.primaryStatus ?? "not_done"} />
                 <GoalStatusRow label="Secondary" status={checkIn!.secondaryStatus ?? "not_done"} />
@@ -208,11 +202,11 @@ function WeekRow({ entry, member }: { entry: WeekEntry; member: Member }) {
           {/* Monthly goals */}
           {goals && goals.monthly.some((g) => g) && (
             <div>
-              <p className="text-[10px] font-bold text-[#4b5563] tracking-widest uppercase mb-2">Quarterly Goals</p>
+              <p className="text-[10px] font-bold text-dimmer tracking-widest uppercase mb-2">Quarterly Goals</p>
               <ol className="space-y-1">
                 {goals.monthly.map((g, i) => g ? (
-                  <li key={i} className="flex gap-2 text-[13px] text-[#c9cdd8]">
-                    <span className="text-[#4b5563] w-4 shrink-0">{i + 1}.</span>{g}
+                  <li key={i} className="flex gap-2 text-[13px] text-content">
+                    <span className="text-dimmer w-4 shrink-0">{i + 1}.</span>{g}
                   </li>
                 ) : null)}
               </ol>
@@ -222,11 +216,11 @@ function WeekRow({ entry, member }: { entry: WeekEntry; member: Member }) {
           {/* Year-end goals */}
           {goals && goals.yearEnd.some((g) => g) && (
             <div>
-              <p className="text-[10px] font-bold text-[#4b5563] tracking-widest uppercase mb-2">Year-End Goals</p>
+              <p className="text-[10px] font-bold text-dimmer tracking-widest uppercase mb-2">Year-End Goals</p>
               <ol className="space-y-1">
                 {goals.yearEnd.map((g, i) => g ? (
-                  <li key={i} className="flex gap-2 text-[13px] text-[#c9cdd8]">
-                    <span className="text-[#4b5563] w-4 shrink-0">{i + 1}.</span>{g}
+                  <li key={i} className="flex gap-2 text-[13px] text-content">
+                    <span className="text-dimmer w-4 shrink-0">{i + 1}.</span>{g}
                   </li>
                 ) : null)}
               </ol>
@@ -242,7 +236,7 @@ function GoalLine({ tier, text, color }: { tier: string; text: string; color: st
   return (
     <div className="flex items-baseline gap-2">
       <span className="text-[12px] font-semibold w-16 shrink-0" style={{ color }}>{tier}</span>
-      <span className="text-[13px] text-[#c9cdd8]">{text}</span>
+      <span className="text-[13px] text-content">{text}</span>
     </div>
   );
 }
@@ -250,7 +244,7 @@ function GoalLine({ tier, text, color }: { tier: string; text: string; color: st
 const STATUS_CONFIG: Record<GoalStatus, { label: string; color: string; dot: string }> = {
   completed: { label: "Completed", color: "text-emerald-400", dot: "bg-emerald-500" },
   in_progress: { label: "In Progress", color: "text-amber-400", dot: "bg-amber-500" },
-  not_done: { label: "Not Done", color: "text-[#4b5563]", dot: "bg-[#2a2f3e]" },
+  not_done: { label: "Not Done", color: "text-dimmer", dot: "bg-subtle" },
 };
 
 function GoalStatusRow({ label, status }: { label: string; status: GoalStatus }) {
@@ -259,7 +253,7 @@ function GoalStatusRow({ label, status }: { label: string; status: GoalStatus })
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         <div className={`w-3 h-3 rounded-full ${cfg.dot}`} />
-        <span className="text-[13px] text-[#c9cdd8]">{label}</span>
+        <span className="text-[13px] text-content">{label}</span>
       </div>
       <span className={`text-[11px] font-semibold ${cfg.color}`}>{cfg.label}</span>
     </div>
@@ -269,8 +263,8 @@ function GoalStatusRow({ label, status }: { label: string; status: GoalStatus })
 function ReflectionItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="mt-2">
-      <p className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase mb-1">{label}</p>
-      <p className="text-[13px] text-[#c9cdd8]">{value}</p>
+      <p className="text-[11px] font-semibold text-dim tracking-wider uppercase mb-1">{label}</p>
+      <p className="text-[13px] text-content">{value}</p>
     </div>
   );
 }

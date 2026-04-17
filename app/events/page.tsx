@@ -26,7 +26,6 @@ const RECURRENCE_OPTIONS: { value: Recurrence; label: string; desc: string }[] =
   { value: "monthly", label: "Monthly", desc: "Every month" },
 ];
 
-// For a recurring event, compute the next occurrence >= today
 function getNextOccurrence(eventDate: string, recurrence: Recurrence): string {
   if (recurrence === "none") return eventDate;
   const today = new Date();
@@ -150,7 +149,6 @@ export default function EventsPage() {
 
   const memberMap = Object.fromEntries(members.map((m) => [m.id, m]));
 
-  // For display, use next occurrence date for recurring events
   const withDisplayDate = events.map((e) => ({ ...e, displayDate: getDisplayDate(e) }));
   const upcoming = withDisplayDate
     .filter((e) => !isPast(e.displayDate))
@@ -163,13 +161,13 @@ export default function EventsPage() {
   const nextEvent = upcoming[0];
 
   return (
-    <div className="min-h-screen bg-[#0d0f14] pb-28">
+    <div className="min-h-screen bg-background pb-28">
       <div className="max-w-lg mx-auto">
 
         <div className="px-5 pt-8 pb-5 flex items-start justify-between">
           <div>
-            <h2 className="text-[32px] font-bold text-white leading-none">Events</h2>
-            <p className="text-[13px] text-[#8b93a7] mt-2">Meetups & gatherings</p>
+            <h2 className="text-[32px] font-bold text-foreground leading-none">Events</h2>
+            <p className="text-[13px] text-muted-foreground mt-2">Meetups & gatherings</p>
           </div>
           <button onClick={() => setShowForm((v) => !v)}
             className="mt-1 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#7c6af7] text-white text-[13px] font-semibold hover:bg-[#6c5ae7] transition-colors">
@@ -185,14 +183,14 @@ export default function EventsPage() {
           <div className="mx-4 mb-4 bg-[#7c6af7]/10 border border-[#7c6af7]/30 rounded-2xl px-4 py-3 flex items-center gap-4">
             <div className="flex flex-col items-center justify-center bg-[#7c6af7]/20 rounded-xl w-14 h-14 shrink-0">
               <span className="text-[10px] font-bold text-[#7c6af7] tracking-widest uppercase">{formatEventDate(nextEvent.displayDate).month}</span>
-              <span className="text-[26px] font-black text-white leading-none">{formatEventDate(nextEvent.displayDate).day}</span>
+              <span className="text-[26px] font-black text-foreground leading-none">{formatEventDate(nextEvent.displayDate).day}</span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-semibold text-[#7c6af7] tracking-widest uppercase mb-0.5">
                 {isToday(nextEvent.displayDate) ? "Today" : "Next up"}
               </p>
-              <p className="text-[15px] font-bold text-white truncate">{nextEvent.title}</p>
-              <p className="text-[12px] text-[#8b93a7] mt-0.5">
+              <p className="text-[15px] font-bold text-foreground truncate">{nextEvent.title}</p>
+              <p className="text-[12px] text-muted-foreground mt-0.5">
                 {formatEventDate(nextEvent.displayDate).weekday}
                 {nextEvent.eventTime && ` · ${formatTime(nextEvent.eventTime)}`}
                 {nextEvent.location && ` · ${nextEvent.location}`}
@@ -208,15 +206,15 @@ export default function EventsPage() {
 
         {/* Add form */}
         {showForm && (
-          <form onSubmit={handleSubmit} className="mx-4 mb-4 bg-[#161922] rounded-2xl px-4 py-4 space-y-3">
-            <p className="text-[14px] font-semibold text-white">New Event</p>
+          <form onSubmit={handleSubmit} className="mx-4 mb-4 bg-card rounded-2xl px-4 py-4 space-y-3">
+            <p className="text-[14px] font-semibold text-foreground">New Event</p>
 
             <div>
-              <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1.5">Added by</label>
+              <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1.5">Added by</label>
               <div className="flex gap-2 flex-wrap">
                 {members.map((m) => (
                   <button key={m.id} type="button" onClick={() => setFormMemberId(m.id)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[12px] font-medium transition-colors ${formMemberId === m.id ? "bg-[#7c6af7] text-white" : "bg-[#0d0f14] text-[#8b93a7]"}`}>
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[12px] font-medium transition-colors ${formMemberId === m.id ? "bg-[#7c6af7] text-white" : "bg-background text-muted-foreground"}`}>
                     <div className={`w-4 h-4 rounded-full ${AVATAR_BG[m.color] ?? "bg-indigo-600"} flex items-center justify-center text-white font-bold text-[9px]`}>
                       {m.name[0].toUpperCase()}
                     </div>
@@ -226,56 +224,56 @@ export default function EventsPage() {
               </div>
             </div>
 
-            <div className="bg-[#0d0f14] rounded-xl px-3 py-2.5">
-              <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1">Event name *</label>
+            <div className="bg-background rounded-xl px-3 py-2.5">
+              <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1">Event name *</label>
               <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="e.g. Monthly Meetup" required
-                className="w-full bg-transparent text-[14px] text-white placeholder:text-[#374151] outline-none" />
+                className="w-full bg-transparent text-[14px] text-foreground placeholder:text-placeholder outline-none" />
             </div>
 
             <div className="flex gap-2">
-              <div className="flex-1 bg-[#0d0f14] rounded-xl px-3 py-2.5">
-                <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1">Date *</label>
+              <div className="flex-1 bg-background rounded-xl px-3 py-2.5">
+                <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1">Date *</label>
                 <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} required
-                  className="w-full bg-transparent text-[14px] text-white outline-none [color-scheme:dark]" />
+                  className="w-full bg-transparent text-[14px] text-foreground outline-none" />
               </div>
-              <div className="flex-1 bg-[#0d0f14] rounded-xl px-3 py-2.5">
-                <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1">Time</label>
+              <div className="flex-1 bg-background rounded-xl px-3 py-2.5">
+                <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1">Time</label>
                 <input type="time" value={formTime} onChange={(e) => setFormTime(e.target.value)}
-                  className="w-full bg-transparent text-[14px] text-white outline-none [color-scheme:dark]" />
+                  className="w-full bg-transparent text-[14px] text-foreground outline-none" />
               </div>
             </div>
 
             {/* Recurrence */}
             <div>
-              <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1.5">Repeats</label>
+              <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1.5">Repeats</label>
               <div className="flex gap-2 flex-wrap">
                 {RECURRENCE_OPTIONS.map((opt) => (
                   <button key={opt.value} type="button" onClick={() => setFormRecurrence(opt.value)}
-                    className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${formRecurrence === opt.value ? "bg-[#7c6af7] text-white" : "bg-[#0d0f14] text-[#8b93a7]"}`}>
+                    className={`px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${formRecurrence === opt.value ? "bg-[#7c6af7] text-white" : "bg-background text-muted-foreground"}`}>
                     {opt.value !== "none" && "🔁 "}{opt.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="bg-[#0d0f14] rounded-xl px-3 py-2.5">
-              <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1">Location</label>
+            <div className="bg-background rounded-xl px-3 py-2.5">
+              <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1">Location</label>
               <input type="text" value={formLocation} onChange={(e) => setFormLocation(e.target.value)}
                 placeholder="Address or link..."
-                className="w-full bg-transparent text-[14px] text-white placeholder:text-[#374151] outline-none" />
+                className="w-full bg-transparent text-[14px] text-foreground placeholder:text-placeholder outline-none" />
             </div>
 
-            <div className="bg-[#0d0f14] rounded-xl px-3 py-2.5">
-              <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1">Notes</label>
+            <div className="bg-background rounded-xl px-3 py-2.5">
+              <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1">Notes</label>
               <textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)}
                 placeholder="What to bring, agenda..." rows={2}
-                className="w-full bg-transparent text-[14px] text-white placeholder:text-[#374151] outline-none resize-none" />
+                className="w-full bg-transparent text-[14px] text-foreground placeholder:text-placeholder outline-none resize-none" />
             </div>
 
             <div className="flex gap-2">
               <button type="button" onClick={() => setShowForm(false)}
-                className="flex-1 py-2.5 rounded-xl bg-[#0d0f14] text-[#8b93a7] text-[13px] font-semibold hover:text-white transition-colors">
+                className="flex-1 py-2.5 rounded-xl bg-background text-muted-foreground text-[13px] font-semibold hover:text-foreground transition-colors">
                 Cancel
               </button>
               <button type="submit" disabled={!formTitle.trim() || !formDate || saving}
@@ -290,7 +288,7 @@ export default function EventsPage() {
         <div className="flex gap-2 px-4 mb-4">
           {(["upcoming", "past"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-1.5 rounded-full text-[13px] font-semibold capitalize transition-colors ${tab === t ? "bg-[#7c6af7] text-white" : "bg-[#161922] text-[#8b93a7] hover:text-white"}`}>
+              className={`px-4 py-1.5 rounded-full text-[13px] font-semibold capitalize transition-colors ${tab === t ? "bg-[#7c6af7] text-white" : "bg-card text-muted-foreground hover:text-foreground"}`}>
               {t} ({t === "upcoming" ? upcoming.length : past.length})
             </button>
           ))}
@@ -298,12 +296,12 @@ export default function EventsPage() {
 
         {/* Event list */}
         <div className="px-4 space-y-3">
-          {loading && <p className="text-[#4b5563] text-sm text-center py-16">Loading...</p>}
+          {loading && <p className="text-dimmer text-sm text-center py-16">Loading...</p>}
 
           {!loading && displayed.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-[#4b5563] text-sm">{tab === "upcoming" ? "No upcoming events." : "No past events."}</p>
-              {tab === "upcoming" && <p className="text-[#374151] text-xs mt-1">Tap + Add to schedule one.</p>}
+              <p className="text-dimmer text-sm">{tab === "upcoming" ? "No upcoming events." : "No past events."}</p>
+              {tab === "upcoming" && <p className="text-placeholder text-xs mt-1">Tap + Add to schedule one.</p>}
             </div>
           )}
 
@@ -315,12 +313,12 @@ export default function EventsPage() {
 
             return (
               <div key={event.id}
-                className={`bg-[#161922] rounded-2xl overflow-hidden flex ${today ? "ring-1 ring-[#7c6af7]/40" : ""}`}>
+                className={`bg-card rounded-2xl overflow-hidden flex ${today ? "ring-1 ring-[#7c6af7]/40" : ""}`}>
                 {/* Date block */}
                 <div className="flex flex-col items-center justify-center px-4 py-4 shrink-0 w-20 bg-[#7c6af7]/10">
                   <span className="text-[10px] font-bold tracking-widest uppercase text-[#7c6af7]">{date.month}</span>
-                  <span className="text-[32px] font-black leading-none text-white">{date.day}</span>
-                  <span className="text-[10px] font-medium mt-0.5 text-[#8b93a7]">{date.year}</span>
+                  <span className="text-[32px] font-black leading-none text-foreground">{date.day}</span>
+                  <span className="text-[10px] font-medium mt-0.5 text-muted-foreground">{date.year}</span>
                 </div>
 
                 {/* Content */}
@@ -337,8 +335,8 @@ export default function EventsPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-[15px] font-bold text-white leading-snug">{event.title}</p>
-                      <p className="text-[12px] text-[#8b93a7] mt-0.5">
+                      <p className="text-[15px] font-bold text-foreground leading-snug">{event.title}</p>
+                      <p className="text-[12px] text-muted-foreground mt-0.5">
                         {date.weekday}
                         {event.eventTime && ` · ${formatTime(event.eventTime)}`}
                       </p>
@@ -347,15 +345,15 @@ export default function EventsPage() {
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
                           </svg>
-                          <p className="text-[12px] text-[#6b7280] truncate">{event.location}</p>
+                          <p className="text-[12px] text-dim truncate">{event.location}</p>
                         </div>
                       )}
                       {event.description && (
-                        <p className="text-[12px] text-[#6b7280] mt-1.5 leading-relaxed">{event.description}</p>
+                        <p className="text-[12px] text-dim mt-1.5 leading-relaxed">{event.description}</p>
                       )}
                     </div>
                     <button onClick={() => handleDelete(event.id)}
-                      className="text-[#2a2f3e] hover:text-red-400 transition-colors shrink-0 mt-0.5">
+                      className="text-subtle hover:text-red-400 transition-colors shrink-0 mt-0.5">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4h6v2" />
                       </svg>
@@ -363,11 +361,11 @@ export default function EventsPage() {
                   </div>
 
                   {member && (
-                    <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-white/[0.04]">
+                    <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border">
                       <div className={`w-4 h-4 rounded-full ${AVATAR_BG[member.color] ?? "bg-indigo-600"} flex items-center justify-center text-white font-bold text-[9px]`}>
                         {member.name[0].toUpperCase()}
                       </div>
-                      <span className="text-[11px] text-[#4b5563]">Added by {member.name}</span>
+                      <span className="text-[11px] text-dimmer">Added by {member.name}</span>
                     </div>
                   )}
                 </div>

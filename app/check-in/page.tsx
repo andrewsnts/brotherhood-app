@@ -55,7 +55,6 @@ export default function CheckInPage() {
       await initDb();
       const m = await getMembers();
       setMembers(m);
-      // check which members already checked in today
       const map: Record<string, boolean> = {};
       await Promise.all(m.map(async (member) => {
         const ci = await getCheckInForMemberToday(member.id, today);
@@ -124,37 +123,37 @@ export default function CheckInPage() {
   const batteryPct = calcBatteryPercent(battery);
 
   return (
-    <div className="min-h-screen bg-[#0d0f14] pb-28">
+    <div className="min-h-screen bg-background pb-28">
       <div className="max-w-lg mx-auto">
       <div className="px-5 pt-8 pb-5">
-        <h2 className="text-[32px] font-bold text-white leading-none">Weekly Check-in</h2>
-        <p className="text-[13px] text-[#8b93a7] mt-2">{dateLabel}</p>
+        <h2 className="text-[32px] font-bold text-foreground leading-none">Weekly Check-in</h2>
+        <p className="text-[13px] text-muted-foreground mt-2">{dateLabel}</p>
       </div>
 
       <div className="px-4 mt-4">
         {/* Step: Select member */}
         {step === "select" && (
           <div>
-            <p className="text-[14px] text-[#8b93a7] mb-4">Who are you checking in?</p>
+            <p className="text-[14px] text-muted-foreground mb-4">Who are you checking in?</p>
             {loading ? (
-              <p className="text-[#4b5563] text-sm text-center py-10">Loading...</p>
+              <p className="text-dimmer text-sm text-center py-10">Loading...</p>
             ) : (
               <div className="space-y-3">
                 {members.map((m) => (
                   <button
                     key={m.id}
                     onClick={() => selectMember(m.id)}
-                    className="w-full flex items-center gap-3 bg-[#161922] rounded-2xl px-4 py-3.5 text-left hover:bg-[#1e2230] transition-colors"
+                    className="w-full flex items-center gap-3 bg-card rounded-2xl px-4 py-3.5 text-left hover:bg-muted transition-colors"
                   >
                     <div className={`w-10 h-10 rounded-full ${AVATAR_BG[m.color] ?? "bg-indigo-600"} flex items-center justify-center text-white font-bold text-[16px]`}>
                       {m.name[0].toUpperCase()}
                     </div>
                     <div className="flex-1">
-                      <p className="text-white font-semibold text-[15px]">{m.name}</p>
+                      <p className="text-foreground font-semibold text-[15px]">{m.name}</p>
                       {todayMap[m.id] ? (
                         <p className="text-[12px] text-emerald-400 mt-0.5">Checked in today</p>
                       ) : (
-                        <p className="text-[12px] text-[#8b93a7] mt-0.5">Not checked in yet</p>
+                        <p className="text-[12px] text-muted-foreground mt-0.5">Not checked in yet</p>
                       )}
                     </div>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -163,7 +162,7 @@ export default function CheckInPage() {
                   </button>
                 ))}
                 {members.length === 0 && (
-                  <p className="text-[#4b5563] text-sm text-center py-10">Add members in Goal Setup first.</p>
+                  <p className="text-dimmer text-sm text-center py-10">Add members in Goal Setup first.</p>
                 )}
               </div>
             )}
@@ -176,10 +175,10 @@ export default function CheckInPage() {
             <StepHeader member={selectedMember} title="Entrepreneurial Battery" subtitle="Rate each area 1–10" onBack={reset} />
             <div className="space-y-3 mt-4">
               {(Object.keys(BATTERY_LABELS) as (keyof BatteryScores)[]).map((key) => (
-                <div key={key} className="bg-[#161922] rounded-xl px-4 py-3">
+                <div key={key} className="bg-card rounded-xl px-4 py-3">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[13px] text-[#c9cdd8]">{BATTERY_LABELS[key]}</span>
-                    <span className="text-[13px] font-bold text-white w-5 text-right">{battery[key]}</span>
+                    <span className="text-[13px] text-content">{BATTERY_LABELS[key]}</span>
+                    <span className="text-[13px] font-bold text-foreground w-5 text-right">{battery[key]}</span>
                   </div>
                   <input
                     type="range" min={1} max={10} value={battery[key]}
@@ -189,8 +188,8 @@ export default function CheckInPage() {
                 </div>
               ))}
             </div>
-            <div className="mt-4 bg-[#161922] rounded-xl px-4 py-3 flex items-center justify-between">
-              <span className="text-[14px] text-[#8b93a7]">Total Battery</span>
+            <div className="mt-4 bg-card rounded-xl px-4 py-3 flex items-center justify-between">
+              <span className="text-[14px] text-muted-foreground">Total Battery</span>
               <span className="text-[22px] font-bold text-[#eab308]">{batteryPct}%</span>
             </div>
             <button onClick={() => setStep("goals")} className="w-full mt-4 py-3.5 rounded-2xl bg-[#7c6af7] text-white font-semibold text-[15px] hover:bg-[#6c5ae7] transition-colors">
@@ -214,7 +213,7 @@ export default function CheckInPage() {
                 <GoalDropdown tier="Bonus" text={goals.bonus} color="#eab308" status={bonusStatus} onChange={setBonusStatus} />
               )}
               {!goals.primary && !goals.secondary && !goals.bonus && (
-                <p className="text-[#4b5563] text-sm text-center py-6">No goals set for this week. Set them in Goal Setup.</p>
+                <p className="text-dimmer text-sm text-center py-6">No goals set for this week. Set them in Goal Setup.</p>
               )}
             </div>
             <button onClick={() => setStep("reflection")} className="w-full mt-4 py-3.5 rounded-2xl bg-[#7c6af7] text-white font-semibold text-[15px] hover:bg-[#6c5ae7] transition-colors">
@@ -247,10 +246,10 @@ export default function CheckInPage() {
               </svg>
             </div>
             <div className="text-center">
-              <p className="text-white font-bold text-[20px]">{selectedMember.name} checked in!</p>
-              <p className="text-[#8b93a7] text-[14px] mt-1">Battery: {batteryPct}%</p>
+              <p className="text-foreground font-bold text-[20px]">{selectedMember.name} checked in!</p>
+              <p className="text-muted-foreground text-[14px] mt-1">Battery: {batteryPct}%</p>
             </div>
-            <button onClick={reset} className="px-6 py-3 rounded-2xl bg-[#161922] text-white font-semibold text-[15px] hover:bg-[#1e2230] transition-colors">
+            <button onClick={reset} className="px-6 py-3 rounded-2xl bg-card text-foreground font-semibold text-[15px] hover:bg-muted transition-colors">
               Check in another member
             </button>
           </div>
@@ -266,7 +265,7 @@ export default function CheckInPage() {
 function StepHeader({ member, title, subtitle, onBack }: { member: Member; title: string; subtitle: string; onBack: () => void }) {
   return (
     <div>
-      <button onClick={onBack} className="flex items-center gap-1 text-[#8b93a7] text-[13px] mb-4 hover:text-white transition-colors">
+      <button onClick={onBack} className="flex items-center gap-1 text-muted-foreground text-[13px] mb-4 hover:text-foreground transition-colors">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="15 18 9 12 15 6" />
         </svg>
@@ -276,10 +275,10 @@ function StepHeader({ member, title, subtitle, onBack }: { member: Member; title
         <div className={`w-9 h-9 rounded-full ${AVATAR_BG[member.color] ?? "bg-indigo-600"} flex items-center justify-center text-white font-bold text-[15px]`}>
           {member.name[0].toUpperCase()}
         </div>
-        <span className="text-white font-semibold text-[16px]">{member.name}</span>
+        <span className="text-foreground font-semibold text-[16px]">{member.name}</span>
       </div>
-      <h3 className="text-[22px] font-bold text-white mt-2">{title}</h3>
-      <p className="text-[13px] text-[#8b93a7] mt-0.5">{subtitle}</p>
+      <h3 className="text-[22px] font-bold text-foreground mt-2">{title}</h3>
+      <p className="text-[13px] text-muted-foreground mt-0.5">{subtitle}</p>
     </div>
   );
 }
@@ -287,7 +286,7 @@ function StepHeader({ member, title, subtitle, onBack }: { member: Member; title
 const GOAL_STATUS_OPTIONS: { value: GoalStatus; label: string; bg: string }[] = [
   { value: "completed", label: "Completed", bg: "bg-emerald-500/10 border-emerald-500/30" },
   { value: "in_progress", label: "In Progress", bg: "bg-amber-500/10 border-amber-500/30" },
-  { value: "not_done", label: "Not Done", bg: "bg-[#161922] border-transparent" },
+  { value: "not_done", label: "Not Done", bg: "bg-card border-transparent" },
 ];
 
 const STATUS_COLOR: Record<GoalStatus, string> = {
@@ -303,12 +302,12 @@ function GoalDropdown({ tier, text, color, status, onChange }: { tier: string; t
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-[12px] font-semibold mb-0.5" style={{ color }}>{tier}</p>
-          <p className="text-[13px] text-[#c9cdd8]">{text}</p>
+          <p className="text-[13px] text-content">{text}</p>
         </div>
         <select
           value={status}
           onChange={(e) => onChange(e.target.value as GoalStatus)}
-          className="shrink-0 bg-[#0d0f14] border border-white/10 rounded-lg px-2 py-1.5 text-[12px] font-semibold outline-none cursor-pointer"
+          className="shrink-0 bg-background border border-input rounded-lg px-2 py-1.5 text-[12px] font-semibold outline-none cursor-pointer"
           style={{ color: STATUS_COLOR[status] }}
         >
           {GOAL_STATUS_OPTIONS.map((o) => (
@@ -322,12 +321,12 @@ function GoalDropdown({ tier, text, color, status, onChange }: { tier: string; t
 
 function ReflectionField({ label, placeholder, value, onChange, multiline }: { label: string; placeholder: string; value: string; onChange: (v: string) => void; multiline?: boolean }) {
   return (
-    <div className="bg-[#161922] rounded-xl px-4 py-3">
-      <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-2">{label}</label>
+    <div className="bg-card rounded-xl px-4 py-3">
+      <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-2">{label}</label>
       {multiline ? (
-        <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={3} className="w-full bg-transparent text-[14px] text-white placeholder:text-[#4b5563] resize-none outline-none" />
+        <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={3} className="w-full bg-transparent text-[14px] text-foreground placeholder:text-placeholder resize-none outline-none" />
       ) : (
-        <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-transparent text-[14px] text-white placeholder:text-[#4b5563] outline-none" />
+        <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className="w-full bg-transparent text-[14px] text-foreground placeholder:text-placeholder outline-none" />
       )}
     </div>
   );

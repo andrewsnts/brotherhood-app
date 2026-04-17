@@ -58,7 +58,6 @@ export default function ResourcesPage() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [showForm, setShowForm] = useState(false);
 
-  // Form state
   const [formMemberId, setFormMemberId] = useState("");
   const [formCategory, setFormCategory] = useState("book");
   const [formTitle, setFormTitle] = useState("");
@@ -109,16 +108,15 @@ export default function ResourcesPage() {
     ? resources
     : resources.filter((r) => r.category === filterCategory);
 
-  // Group by category
   const usedCategories = Array.from(new Set(resources.map((r) => r.category)));
 
   return (
-    <div className="min-h-screen bg-[#0d0f14] pb-28">
+    <div className="min-h-screen bg-background pb-28">
       <div className="max-w-lg mx-auto">
         <div className="px-5 pt-8 pb-5 flex items-start justify-between">
           <div>
-            <h2 className="text-[32px] font-bold text-white leading-none">Resources</h2>
-            <p className="text-[13px] text-[#8b93a7] mt-2">Shared by the brotherhood</p>
+            <h2 className="text-[32px] font-bold text-foreground leading-none">Resources</h2>
+            <p className="text-[13px] text-muted-foreground mt-2">Shared by the brotherhood</p>
           </div>
           <button
             onClick={() => setShowForm((v) => !v)}
@@ -133,16 +131,16 @@ export default function ResourcesPage() {
 
         {/* Add form */}
         {showForm && (
-          <form onSubmit={handleSubmit} className="mx-4 mb-4 bg-[#161922] rounded-2xl px-4 py-4 space-y-3">
-            <p className="text-[13px] font-semibold text-white">Add a resource</p>
+          <form onSubmit={handleSubmit} className="mx-4 mb-4 bg-card rounded-2xl px-4 py-4 space-y-3">
+            <p className="text-[13px] font-semibold text-foreground">Add a resource</p>
 
             {/* Member */}
             <div>
-              <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1.5">From</label>
+              <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1.5">From</label>
               <div className="flex gap-2 flex-wrap">
                 {members.map((m) => (
                   <button key={m.id} type="button" onClick={() => setFormMemberId(m.id)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[12px] font-medium transition-colors ${formMemberId === m.id ? "bg-[#7c6af7] text-white" : "bg-[#0d0f14] text-[#8b93a7]"}`}>
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[12px] font-medium transition-colors ${formMemberId === m.id ? "bg-[#7c6af7] text-white" : "bg-background text-muted-foreground"}`}>
                     <div className={`w-4 h-4 rounded-full ${AVATAR_BG[m.color] ?? "bg-indigo-600"} flex items-center justify-center text-white font-bold text-[9px]`}>
                       {m.name[0].toUpperCase()}
                     </div>
@@ -154,11 +152,11 @@ export default function ResourcesPage() {
 
             {/* Category */}
             <div>
-              <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1.5">Category</label>
+              <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1.5">Category</label>
               <div className="flex gap-2 flex-wrap">
                 {CATEGORIES.map((c) => (
                   <button key={c.value} type="button" onClick={() => setFormCategory(c.value)}
-                    className={`px-2.5 py-1.5 rounded-full text-[12px] font-medium transition-colors ${formCategory === c.value ? "bg-[#7c6af7] text-white" : "bg-[#0d0f14] text-[#8b93a7]"}`}>
+                    className={`px-2.5 py-1.5 rounded-full text-[12px] font-medium transition-colors ${formCategory === c.value ? "bg-[#7c6af7] text-white" : "bg-background text-muted-foreground"}`}>
                     {c.emoji} {c.label}
                   </button>
                 ))}
@@ -166,32 +164,32 @@ export default function ResourcesPage() {
             </div>
 
             {/* Title */}
-            <div className="bg-[#0d0f14] rounded-xl px-3 py-2.5">
-              <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1">Title *</label>
+            <div className="bg-background rounded-xl px-3 py-2.5">
+              <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1">Title *</label>
               <input type="text" value={formTitle} onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="e.g. The War of Art" required
-                className="w-full bg-transparent text-[14px] text-white placeholder:text-[#374151] outline-none" />
+                className="w-full bg-transparent text-[14px] text-foreground placeholder:text-placeholder outline-none" />
             </div>
 
             {/* URL */}
-            <div className="bg-[#0d0f14] rounded-xl px-3 py-2.5">
-              <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1">Link (optional)</label>
+            <div className="bg-background rounded-xl px-3 py-2.5">
+              <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1">Link (optional)</label>
               <input type="url" value={formUrl} onChange={(e) => setFormUrl(e.target.value)}
                 placeholder="https://..."
-                className="w-full bg-transparent text-[14px] text-white placeholder:text-[#374151] outline-none" />
+                className="w-full bg-transparent text-[14px] text-foreground placeholder:text-placeholder outline-none" />
             </div>
 
             {/* Description */}
-            <div className="bg-[#0d0f14] rounded-xl px-3 py-2.5">
-              <label className="text-[11px] font-semibold text-[#6b7280] tracking-wider uppercase block mb-1">Why recommend it?</label>
+            <div className="bg-background rounded-xl px-3 py-2.5">
+              <label className="text-[11px] font-semibold text-dim tracking-wider uppercase block mb-1">Why recommend it?</label>
               <textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)}
                 placeholder="Short note..." rows={2}
-                className="w-full bg-transparent text-[14px] text-white placeholder:text-[#374151] outline-none resize-none" />
+                className="w-full bg-transparent text-[14px] text-foreground placeholder:text-placeholder outline-none resize-none" />
             </div>
 
             <div className="flex gap-2">
               <button type="button" onClick={() => setShowForm(false)}
-                className="flex-1 py-2.5 rounded-xl bg-[#0d0f14] text-[#8b93a7] text-[13px] font-semibold hover:text-white transition-colors">
+                className="flex-1 py-2.5 rounded-xl bg-background text-muted-foreground text-[13px] font-semibold hover:text-foreground transition-colors">
                 Cancel
               </button>
               <button type="submit" disabled={!formTitle.trim() || saving}
@@ -217,12 +215,12 @@ export default function ResourcesPage() {
 
         {/* Content */}
         <div className="px-4 space-y-3">
-          {loading && <p className="text-[#4b5563] text-sm text-center py-16">Loading...</p>}
+          {loading && <p className="text-dimmer text-sm text-center py-16">Loading...</p>}
 
           {!loading && resources.length === 0 && (
             <div className="text-center py-16">
-              <p className="text-[#4b5563] text-sm">No resources yet.</p>
-              <p className="text-[#374151] text-xs mt-1">Be the first to add one.</p>
+              <p className="text-dimmer text-sm">No resources yet.</p>
+              <p className="text-placeholder text-xs mt-1">Be the first to add one.</p>
             </div>
           )}
 
@@ -244,7 +242,7 @@ export default function ResourcesPage() {
 function FilterPill({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
     <button onClick={onClick}
-      className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${active ? "bg-[#7c6af7] text-white" : "bg-[#161922] text-[#8b93a7] hover:text-white"}`}>
+      className={`shrink-0 px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors ${active ? "bg-[#7c6af7] text-white" : "bg-card text-muted-foreground hover:text-foreground"}`}>
       {label}
     </button>
   );
@@ -261,9 +259,9 @@ function ResourceCard({ resource, member, meta, onDelete }: {
   });
 
   return (
-    <div className="bg-[#161922] rounded-2xl px-4 py-4">
+    <div className="bg-card rounded-2xl px-4 py-4">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[#0d0f14] flex items-center justify-center text-[20px] shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center text-[20px] shrink-0">
           {meta.emoji}
         </div>
         <div className="flex-1 min-w-0">
@@ -271,7 +269,7 @@ function ResourceCard({ resource, member, meta, onDelete }: {
             <div className="flex-1 min-w-0">
               {resource.url ? (
                 <a href={resource.url} target="_blank" rel="noopener noreferrer"
-                  className="text-[15px] font-semibold text-white hover:text-[#7c6af7] transition-colors leading-snug block">
+                  className="text-[15px] font-semibold text-foreground hover:text-[#7c6af7] transition-colors leading-snug block">
                   {resource.title}
                   <svg className="inline ml-1 mb-0.5" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -279,11 +277,11 @@ function ResourceCard({ resource, member, meta, onDelete }: {
                   </svg>
                 </a>
               ) : (
-                <p className="text-[15px] font-semibold text-white leading-snug">{resource.title}</p>
+                <p className="text-[15px] font-semibold text-foreground leading-snug">{resource.title}</p>
               )}
-              <span className="text-[11px] font-medium text-[#6b7280]">{meta.label}</span>
+              <span className="text-[11px] font-medium text-dim">{meta.label}</span>
             </div>
-            <button onClick={onDelete} className="text-[#2a2f3e] hover:text-red-400 transition-colors shrink-0 mt-0.5">
+            <button onClick={onDelete} className="text-subtle hover:text-red-400 transition-colors shrink-0 mt-0.5">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4h6v2" />
               </svg>
@@ -291,7 +289,7 @@ function ResourceCard({ resource, member, meta, onDelete }: {
           </div>
 
           {resource.description && (
-            <p className="text-[13px] text-[#8b93a7] mt-1.5 leading-relaxed">{resource.description}</p>
+            <p className="text-[13px] text-muted-foreground mt-1.5 leading-relaxed">{resource.description}</p>
           )}
 
           <div className="flex items-center gap-2 mt-2">
@@ -300,11 +298,11 @@ function ResourceCard({ resource, member, meta, onDelete }: {
                 <div className={`w-4 h-4 rounded-full ${AVATAR_BG[member.color] ?? "bg-indigo-600"} flex items-center justify-center text-white font-bold text-[9px]`}>
                   {member.name[0].toUpperCase()}
                 </div>
-                <span className="text-[11px] text-[#6b7280]">{member.name}</span>
-                <span className="text-[#2a2f3e]">·</span>
+                <span className="text-[11px] text-dim">{member.name}</span>
+                <span className="text-subtle">·</span>
               </>
             )}
-            <span className="text-[11px] text-[#4b5563]">{dateLabel}</span>
+            <span className="text-[11px] text-dimmer">{dateLabel}</span>
           </div>
         </div>
       </div>

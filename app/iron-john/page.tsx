@@ -195,9 +195,6 @@ const SCHEDULE: WeekData[] = [
 ];
 
 // ── Current Session Detection ──────────────────────────────
-// Group started March 30, 2026 — first session Tuesday March 31
-// Sessions: Tuesday + Thursday each week
-
 const FIRST_TUESDAY = new Date("2026-03-31T00:00:00");
 
 function getCurrentSession(): { week: number; idx: number } {
@@ -210,16 +207,13 @@ function getCurrentSession(): { week: number; idx: number } {
     const nextTue = new Date(tue);
     nextTue.setDate(tue.getDate() + 7);
 
-    if (now < thu) return { week: w, idx: 0 };   // before or on Tue → Tuesday session
-    if (now < nextTue) return { week: w, idx: 1 }; // Thu through Mon → Thursday session
+    if (now < thu) return { week: w, idx: 0 };
+    if (now < nextTue) return { week: w, idx: 1 };
   }
   return { week: 8, idx: 1 };
 }
 
-// Session part ID stored in DB: week * 10 + sessionIndex
 function partId(week: number, idx: number) { return week * 10 + idx; }
-
-// ── Storage ────────────────────────────────────────────────
 
 interface PartEntry {
   partNum: number;
@@ -228,8 +222,6 @@ interface PartEntry {
   practiceNote: string;
   completedAt: string | null;
 }
-
-// ── Page ──────────────────────────────────────────────────
 
 export default function IronJohnPage() {
   const [members, setMembers] = useState<{ id: string; name: string; color: string }[]>([]);
@@ -250,7 +242,6 @@ export default function IronJohnPage() {
       if (m.length > 0) setActiveMemberId(m[0].id);
     }
     init();
-    // Auto-open current week
     setOpenWeeks(new Set([current.week]));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -269,27 +260,27 @@ export default function IronJohnPage() {
   const progressPct = Math.round((completedCount / totalSessions) * 100);
 
   return (
-    <div className="min-h-screen bg-[#0d0f14] pb-28">
+    <div className="min-h-screen bg-background pb-28">
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="px-5 pt-8 pb-1">
-          <h2 className="text-[32px] font-bold text-white leading-none">Iron John</h2>
+          <h2 className="text-[32px] font-bold text-foreground leading-none">Iron John</h2>
           <div className="flex items-center gap-2 mt-2">
-            <span className="text-[13px] text-[#8b93a7]">Week {groupWeek}</span>
-            <span className="text-[#4b5563]">·</span>
-            <span className="text-[13px] text-[#8b93a7]">Day {groupDay}</span>
-            <span className="text-[#4b5563]">·</span>
-            <span className="text-[13px] text-[#8b93a7]">Robert Bly</span>
+            <span className="text-[13px] text-muted-foreground">Week {groupWeek}</span>
+            <span className="text-dimmer">·</span>
+            <span className="text-[13px] text-muted-foreground">Day {groupDay}</span>
+            <span className="text-dimmer">·</span>
+            <span className="text-[13px] text-muted-foreground">Robert Bly</span>
           </div>
         </div>
 
         {/* Progress */}
         <div className="px-5 mt-5">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-[#4b5563] tracking-[0.15em] uppercase">Course Progress</span>
+            <span className="text-[10px] font-bold text-dimmer tracking-[0.15em] uppercase">Course Progress</span>
             <span className="text-[12px] font-bold text-[#7c6af7]">{completedCount}/{totalSessions} · {progressPct}%</span>
           </div>
-          <div className="h-1.5 bg-[#1e2230] rounded-full overflow-hidden">
+          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
             <div className="h-full bg-[#7c6af7] rounded-full transition-all" style={{ width: `${progressPct}%` }} />
           </div>
         </div>
@@ -299,7 +290,7 @@ export default function IronJohnPage() {
           <div className="flex gap-2 px-5 mt-4 flex-wrap">
             {members.map((m) => (
               <button key={m.id} onClick={() => setActiveMemberId(m.id)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors ${activeMemberId === m.id ? "bg-[#7c6af7] text-white" : "bg-[#161922] text-[#8b93a7] hover:text-white"}`}>
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors ${activeMemberId === m.id ? "bg-[#7c6af7] text-white" : "bg-card text-muted-foreground hover:text-foreground"}`}>
                 <div className={`w-5 h-5 rounded-full ${AVATAR_BG[m.color] ?? "bg-indigo-600"} flex items-center justify-center text-white font-bold text-[10px]`}>
                   {m.name[0].toUpperCase()}
                 </div>
@@ -317,11 +308,11 @@ export default function IronJohnPage() {
 
             return (
               <div key={week.week}
-                className={`rounded-2xl overflow-hidden border ${week.catchup ? "border-amber-500/30" : hasCurrentSession ? "border-[#7c6af7]/40" : "border-white/[0.06]"} bg-[#161922]`}>
+                className={`rounded-2xl overflow-hidden border ${week.catchup ? "border-amber-500/30" : hasCurrentSession ? "border-[#7c6af7]/40" : "border-border"} bg-card`}>
                 {/* Week header */}
                 <button onClick={() => toggleWeek(week.week)}
-                  className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-white/[0.02] transition-colors">
-                  <span className="text-[11px] font-semibold bg-[#0d0f14] border border-white/10 rounded-md px-2 py-0.5 text-[#8b93a7] shrink-0">
+                  className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-muted/50 transition-colors">
+                  <span className="text-[11px] font-semibold bg-background border border-input rounded-md px-2 py-0.5 text-muted-foreground shrink-0">
                     Week {week.week}
                   </span>
                   {week.catchup && (
@@ -330,7 +321,7 @@ export default function IronJohnPage() {
                   {hasCurrentSession && (
                     <span className="text-[10px] font-semibold bg-[#7c6af7]/20 text-[#7c6af7] rounded-md px-2 py-0.5 shrink-0">current</span>
                   )}
-                  <span className="text-[14px] font-semibold text-white flex-1 truncate">{week.theme}</span>
+                  <span className="text-[14px] font-semibold text-foreground flex-1 truncate">{week.theme}</span>
                   {week.done && <span className="text-[11px] text-emerald-400 shrink-0">✓ done</span>}
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                     className={`shrink-0 transition-transform ${isOpen ? "rotate-90" : ""}`}>
@@ -340,7 +331,7 @@ export default function IronJohnPage() {
 
                 {/* Sessions */}
                 {isOpen && (
-                  <div className="border-t border-white/[0.05] px-4 py-4 space-y-4">
+                  <div className="border-t border-border px-4 py-4 space-y-4">
                     {week.sessions.map((session, idx) => {
                       const isCurrent = week.week === current.week && idx === current.idx;
                       const pid = partId(week.week, idx);
@@ -369,8 +360,6 @@ export default function IronJohnPage() {
     </div>
   );
 }
-
-// ── Session Card ───────────────────────────────────────────
 
 function SessionCard({
   session, isCurrent, partId, activeMemberId, members, entries, setEntries,
@@ -427,14 +416,14 @@ function SessionCard({
     ? "border-amber-500/30 opacity-60"
     : session.done
     ? "border-emerald-500/20"
-    : "border-white/[0.06]";
+    : "border-border";
 
   return (
     <div className={`rounded-xl border ${borderClass}`}>
       {/* Session header */}
       <div className="px-4 pt-3.5 pb-3">
         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-          <span className={`text-[11px] font-semibold uppercase tracking-wider ${isCurrent ? "text-[#7c6af7]" : "text-[#6b7280]"}`}>
+          <span className={`text-[11px] font-semibold uppercase tracking-wider ${isCurrent ? "text-[#7c6af7]" : "text-dim"}`}>
             {session.day}
           </span>
           {isCurrent && (
@@ -447,16 +436,16 @@ function SessionCard({
           {session.done && !isCurrent && <span className="text-[11px] text-emerald-400">✓</span>}
           {isCompleted && <span className="text-[11px] text-emerald-400 ml-auto">Journal saved ✓</span>}
         </div>
-        <p className="text-[14px] font-semibold text-white">{session.label}</p>
+        <p className="text-[14px] font-semibold text-foreground">{session.label}</p>
         <p className="text-[11px] text-amber-400/80 mt-0.5">{session.bookRef}</p>
       </div>
 
       {/* Content */}
-      <div className="px-4 pb-3 space-y-3 border-t border-white/[0.05]">
+      <div className="px-4 pb-3 space-y-3 border-t border-border">
         {session.combined && session.part1 && session.part2 ? (
           <>
             <CombinedPart part={session.part1} />
-            <div className="border-t border-dashed border-white/10 my-2" />
+            <div className="border-t border-dashed border-input my-2" />
             <CombinedPart part={session.part2} />
           </>
         ) : (
@@ -469,13 +458,13 @@ function SessionCard({
 
         {/* Journal */}
         {activeMemberId && (
-          <div className="mt-3 space-y-2 pt-3 border-t border-white/[0.05]">
-            <p className="text-[10px] font-bold text-[#6b7280] tracking-widest uppercase">Your Journal</p>
+          <div className="mt-3 space-y-2 pt-3 border-t border-border">
+            <p className="text-[10px] font-bold text-dim tracking-widest uppercase">Your Journal</p>
             <JournalField label="Reflection" value={draftReflection} onChange={setDraftReflection} />
             <JournalField label="Practice notes" value={draftPractice} onChange={setDraftPractice} />
             <div className="flex gap-2 pt-1">
               <button onClick={() => handleSave(false)}
-                className={`flex-1 py-2 rounded-xl text-[13px] font-semibold transition-colors ${saved ? "bg-emerald-500 text-white" : "bg-[#0d0f14] border border-white/10 text-[#8b93a7] hover:text-white"}`}>
+                className={`flex-1 py-2 rounded-xl text-[13px] font-semibold transition-colors ${saved ? "bg-emerald-500 text-white" : "bg-background border border-input text-muted-foreground hover:text-foreground"}`}>
                 {saved ? "Saved!" : "Save"}
               </button>
               {!isCompleted && (
@@ -506,18 +495,18 @@ function CombinedPart({ part }: { part: { heading: string; reading: string; refl
 function Block({ label, content }: { label: string; content: string }) {
   return (
     <div>
-      <p className="text-[10px] font-semibold text-[#6b7280] tracking-wider uppercase mb-1">{label}</p>
-      <p className="text-[13px] text-[#c9cdd8] leading-relaxed">{content}</p>
+      <p className="text-[10px] font-semibold text-dim tracking-wider uppercase mb-1">{label}</p>
+      <p className="text-[13px] text-content leading-relaxed">{content}</p>
     </div>
   );
 }
 
 function JournalField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="bg-[#0d0f14] rounded-xl px-3 py-2.5">
-      <p className="text-[10px] font-semibold text-[#6b7280] tracking-wider uppercase mb-1.5">{label}</p>
+    <div className="bg-background rounded-xl px-3 py-2.5">
+      <p className="text-[10px] font-semibold text-dim tracking-wider uppercase mb-1.5">{label}</p>
       <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={2}
-        className="w-full bg-transparent text-[13px] text-white placeholder:text-[#374151] resize-none outline-none"
+        className="w-full bg-transparent text-[13px] text-foreground placeholder:text-placeholder resize-none outline-none"
         placeholder="Write here..." />
     </div>
   );

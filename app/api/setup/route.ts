@@ -63,6 +63,18 @@ export async function POST() {
       )
     `;
 
+    await sql`
+      CREATE TABLE IF NOT EXISTS resources (
+        id TEXT PRIMARY KEY,
+        member_id TEXT NOT NULL,
+        category TEXT NOT NULL,
+        title TEXT NOT NULL,
+        url TEXT NOT NULL DEFAULT '',
+        description TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+      )
+    `;
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("setup error", err);

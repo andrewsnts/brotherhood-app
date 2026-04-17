@@ -75,6 +75,19 @@ export async function POST() {
       )
     `;
 
+    await sql`
+      CREATE TABLE IF NOT EXISTS events (
+        id TEXT PRIMARY KEY,
+        member_id TEXT NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        location TEXT NOT NULL DEFAULT '',
+        event_date TEXT NOT NULL,
+        event_time TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+      )
+    `;
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("setup error", err);

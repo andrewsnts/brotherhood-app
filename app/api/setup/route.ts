@@ -84,8 +84,14 @@ export async function POST() {
         location TEXT NOT NULL DEFAULT '',
         event_date TEXT NOT NULL,
         event_time TEXT NOT NULL DEFAULT '',
+        recurrence TEXT NOT NULL DEFAULT 'none',
         created_at TEXT NOT NULL
       )
+    `;
+
+    // Add recurrence column to existing events table if missing
+    await sql`
+      ALTER TABLE events ADD COLUMN IF NOT EXISTS recurrence TEXT NOT NULL DEFAULT 'none'
     `;
 
     return NextResponse.json({ ok: true });

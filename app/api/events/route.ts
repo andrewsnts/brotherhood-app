@@ -10,6 +10,7 @@ function rowToEvent(r: Record<string, unknown>) {
     location: r.location,
     eventDate: r.event_date,
     eventTime: r.event_time,
+    recurrence: r.recurrence ?? "none",
     createdAt: r.created_at,
   };
 }
@@ -27,8 +28,8 @@ export async function POST(req: NextRequest) {
   try {
     const e = await req.json();
     await sql`
-      INSERT INTO events (id, member_id, title, description, location, event_date, event_time, created_at)
-      VALUES (${e.id}, ${e.memberId}, ${e.title}, ${e.description ?? ""}, ${e.location ?? ""}, ${e.eventDate}, ${e.eventTime ?? ""}, ${e.createdAt})
+      INSERT INTO events (id, member_id, title, description, location, event_date, event_time, recurrence, created_at)
+      VALUES (${e.id}, ${e.memberId}, ${e.title}, ${e.description ?? ""}, ${e.location ?? ""}, ${e.eventDate}, ${e.eventTime ?? ""}, ${e.recurrence ?? "none"}, ${e.createdAt})
     `;
     return NextResponse.json({ ok: true });
   } catch (err) {

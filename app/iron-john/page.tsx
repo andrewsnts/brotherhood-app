@@ -506,7 +506,7 @@ function JournalField({ label, value, onChange }: { label: string; value: string
     <div className="bg-background rounded-xl px-3 py-2.5">
       <p className="text-[10px] font-semibold text-dim tracking-wider uppercase mb-1.5">{label}</p>
       <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={2}
-        className="w-full bg-transparent text-[13px] text-foreground placeholder:text-placeholder resize-none outline-none"
+        className="w-full bg-transparent text-[13px] text-foreground placeholder:text-placeholder resize-y outline-none min-h-[3rem]"
         placeholder="Write here..." />
     </div>
   );

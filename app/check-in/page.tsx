@@ -134,6 +134,7 @@ export default function CheckInPage() {
 
   const selectMember = useCallback(async (id: string) => {
     setSelectedId(id);
+    localStorage.setItem("bh_last_member", id);
     const g = await getGoals(id, selectedWeekKey);
     setGoals(g);
     setBattery({ ...g.battery });
@@ -237,28 +238,34 @@ export default function CheckInPage() {
                 <p className="text-dimmer text-sm text-center py-10">Loading...</p>
               ) : (
                 <div className="space-y-3">
-                  {members.map((m) => (
-                    <button
-                      key={m.id}
-                      onClick={() => selectMember(m.id)}
-                      className="w-full flex items-center gap-3 bg-card rounded-2xl px-4 py-3.5 text-left hover:bg-muted transition-colors"
-                    >
-                      <div className={`w-10 h-10 rounded-full ${AVATAR_BG[m.color] ?? "bg-indigo-600"} flex items-center justify-center text-white font-bold text-[16px]`}>
-                        {m.name[0].toUpperCase()}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-foreground font-semibold text-[15px]">{m.name}</p>
-                        {checkedInMap[m.id] ? (
-                          <p className="text-[12px] text-emerald-400 mt-0.5">Already checked in</p>
-                        ) : (
-                          <p className="text-[12px] text-muted-foreground mt-0.5">Not checked in yet</p>
-                        )}
-                      </div>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="9 18 15 12 9 6" />
-                      </svg>
-                    </button>
-                  ))}
+                  {(() => {
+                    const lastId = typeof window !== "undefined" ? localStorage.getItem("bh_last_member") : null;
+                    return members.map((m) => {
+                      const isLast = m.id === lastId;
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => selectMember(m.id)}
+                          className={`w-full flex items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition-colors ${isLast ? "bg-[#7c6af7]/10 border border-[#7c6af7]/30 hover:bg-[#7c6af7]/15" : "bg-card hover:bg-muted"}`}
+                        >
+                          <div className={`w-10 h-10 rounded-full ${AVATAR_BG[m.color] ?? "bg-indigo-600"} flex items-center justify-center text-white font-bold text-[16px]`}>
+                            {m.name[0].toUpperCase()}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-foreground font-semibold text-[15px]">{m.name}</p>
+                            {checkedInMap[m.id] ? (
+                              <p className="text-[12px] text-emerald-400 mt-0.5">Already checked in</p>
+                            ) : (
+                              <p className="text-[12px] text-muted-foreground mt-0.5">Not checked in yet</p>
+                            )}
+                          </div>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="9 18 15 12 9 6" />
+                          </svg>
+                        </button>
+                      );
+                    });
+                  })()}
                   {members.length === 0 && (
                     <p className="text-dimmer text-sm text-center py-10">Add members in Goal Setup first.</p>
                   )}

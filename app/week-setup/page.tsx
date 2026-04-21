@@ -76,9 +76,10 @@ export default function WeekSetupPage() {
     const m = await getMembers();
     setMembers(m);
     if (m.length > 0) {
-      const first = m[0];
-      setSelectedId(first.id);
-      setGoals(await getGoals(first.id, weekKey));
+      const lastId = localStorage.getItem("bh_last_member");
+      const pick = (lastId && m.find((x) => x.id === lastId)) ? lastId : m[0].id;
+      setSelectedId(pick);
+      setGoals(await getGoals(pick, weekKey));
     }
     setLoading(false);
   }
@@ -109,6 +110,7 @@ export default function WeekSetupPage() {
 
   async function selectMember(id: string) {
     setSelectedId(id);
+    localStorage.setItem("bh_last_member", id);
     setGoals(await getGoals(id, selectedWeekKey));
     setSaved(false);
   }

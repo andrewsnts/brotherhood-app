@@ -52,46 +52,46 @@ export default function GoalsBoard() {
 
   return (
     <div className="min-h-screen bg-background pb-28">
-      <div className="max-w-lg mx-auto">
-      <div className="px-5 pt-8 pb-1 flex items-start justify-between">
-        <div>
-          <p className="text-[12px] font-semibold text-muted-foreground tracking-widest uppercase">
-            Deep Work Accountability Brotherhood
-          </p>
-          <p className="text-[12px] text-dimmer mt-0.5">{quarter}</p>
-        </div>
-      </div>
-
-      <div className="px-5 pt-4 pb-5">
-        <h2 className="text-[32px] font-bold text-foreground leading-none">Goals Board</h2>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="text-[13px] text-muted-foreground">Week {weekNum}</span>
-          <span className="text-dimmer">·</span>
-          <span className="text-[13px] text-muted-foreground">Day {dayNum}</span>
-          <span className="text-dimmer">·</span>
-          <span className="text-[13px] text-muted-foreground">All members</span>
-        </div>
-      </div>
-
-      <div className="px-4 space-y-5">
-        {loading && (
-          <p className="text-center text-dimmer py-20 text-sm">Loading...</p>
-        )}
-        {!loading && members.map((member) => {
-          const goals = goalsMap[member.id];
-          const battery = batteryMap[member.id] ?? 0;
-          if (!goals) return null;
-          return (
-            <MemberCard key={member.id} member={member} goals={goals} battery={battery} />
-          );
-        })}
-        {!loading && members.length === 0 && (
-          <div className="text-center py-20 text-muted-foreground">
-            <p className="text-sm">No members yet.</p>
-            <p className="text-xs mt-1">Go to Goal Setup to get started.</p>
+      <div className="max-w-6xl mx-auto">
+        <div className="px-5 pt-8 pb-1 flex items-start justify-between">
+          <div>
+            <p className="text-[12px] font-semibold text-muted-foreground tracking-widest uppercase">
+              Deep Work Accountability Brotherhood
+            </p>
+            <p className="text-[12px] text-dimmer mt-0.5">{quarter}</p>
           </div>
-        )}
-      </div>
+        </div>
+
+        <div className="px-5 pt-4 pb-5">
+          <h2 className="text-[32px] font-bold text-foreground leading-none">Goals Board</h2>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-[13px] text-muted-foreground">Week {weekNum}</span>
+            <span className="text-dimmer">·</span>
+            <span className="text-[13px] text-muted-foreground">Day {dayNum}</span>
+            <span className="text-dimmer">·</span>
+            <span className="text-[13px] text-muted-foreground">All members</span>
+          </div>
+        </div>
+
+        <div className="px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
+          {loading && (
+            <p className="text-center text-dimmer py-20 text-sm col-span-full">Loading...</p>
+          )}
+          {!loading && members.map((member) => {
+            const goals = goalsMap[member.id];
+            const battery = batteryMap[member.id] ?? 0;
+            if (!goals) return null;
+            return (
+              <MemberCard key={member.id} member={member} goals={goals} battery={battery} />
+            );
+          })}
+          {!loading && members.length === 0 && (
+            <div className="text-center py-20 text-muted-foreground col-span-full">
+              <p className="text-sm">No members yet.</p>
+              <p className="text-xs mt-1">Go to Goal Setup to get started.</p>
+            </div>
+          )}
+        </div>
       </div>
 
       <BottomNav />

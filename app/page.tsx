@@ -99,6 +99,20 @@ export default function GoalsBoard() {
   );
 }
 
+function BatteryIcon({ pct }: { pct: number }) {
+  const fillW = Math.round((pct / 100) * 20); // 0–20px fill inside 22px body
+  return (
+    <svg width="26" height="13" viewBox="0 0 26 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Battery body */}
+      <rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" strokeWidth="1.2" />
+      {/* Battery nub */}
+      <rect x="23" y="4" width="3" height="5" rx="1" fill="currentColor" />
+      {/* Fill level */}
+      <rect x="2" y="2" width={fillW} height="9" rx="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
 function MemberCard({ member, goals, battery }: { member: Member; goals: MemberGoals; battery: number }) {
   const avatarBg = AVATAR_BG[member.color] ?? "bg-indigo-600";
   const batteryColor =
@@ -116,7 +130,10 @@ function MemberCard({ member, goals, battery }: { member: Member; goals: MemberG
           </div>
           <span className="text-foreground font-bold text-[18px]">{member.name}</span>
         </div>
-        <span className="font-bold text-[18px]" style={{ color: batteryColor }}>{battery}%</span>
+        <div className="flex items-center gap-1.5" style={{ color: batteryColor }}>
+          <BatteryIcon pct={battery} />
+          <span className="font-bold text-[18px]">{battery}%</span>
+        </div>
       </div>
 
       <div className="h-px bg-border mx-5" />

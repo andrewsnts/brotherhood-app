@@ -23,7 +23,17 @@ export async function GET(req: NextRequest) {
         secondary: r.secondary_goal,
         bonus: r.bonus_goal,
         yearEnd: [r.year_end_1, r.year_end_2, r.year_end_3],
+        yearEndStatus: [
+          r.year_end_1_status ?? "not_done",
+          r.year_end_2_status ?? "not_done",
+          r.year_end_3_status ?? "not_done",
+        ],
         monthly: [r.monthly_1, r.monthly_2, r.monthly_3],
+        monthlyStatus: [
+          r.monthly_1_status ?? "not_done",
+          r.monthly_2_status ?? "not_done",
+          r.monthly_3_status ?? "not_done",
+        ],
         battery: {
           purposeClarity: r.battery_purpose_clarity,
           timeManagement: r.battery_time_management,

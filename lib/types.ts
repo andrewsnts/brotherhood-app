@@ -28,6 +28,8 @@ export const BATTERY_LABELS: Record<keyof BatteryScores, string> = {
   financialWellbeing: "Financial Wellbeing",
 };
 
+export type GoalStatus = "completed" | "in_progress" | "not_done";
+
 export interface MemberGoals {
   memberId: string;
   weekKey: string; // "2026-W14"
@@ -35,11 +37,11 @@ export interface MemberGoals {
   secondary: string;
   bonus: string;
   yearEnd: [string, string, string];
+  yearEndStatus: [GoalStatus, GoalStatus, GoalStatus];
   monthly: [string, string, string];
+  monthlyStatus: [GoalStatus, GoalStatus, GoalStatus];
   battery: BatteryScores;
 }
-
-export type GoalStatus = "completed" | "in_progress" | "not_done";
 
 export interface DailyCheckIn {
   id: string;

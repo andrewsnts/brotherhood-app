@@ -50,7 +50,9 @@ export async function getGoals(memberId: string, weekKey: string): Promise<Membe
       secondary: "",
       bonus: "",
       yearEnd: ["", "", ""],
+      yearEndStatus: ["not_done", "not_done", "not_done"],
       monthly: ["", "", ""],
+      monthlyStatus: ["not_done", "not_done", "not_done"],
       battery: { ...DEFAULT_BATTERY },
     };
   }

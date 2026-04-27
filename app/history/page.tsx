@@ -203,10 +203,12 @@ function WeekRow({ entry, member }: { entry: WeekEntry; member: Member }) {
           {goals && goals.monthly.some((g) => g) && (
             <div>
               <p className="text-[10px] font-bold text-dimmer tracking-widest uppercase mb-2">Quarterly Goals</p>
-              <ol className="space-y-1">
+              <ol className="space-y-1.5">
                 {goals.monthly.map((g, i) => g ? (
-                  <li key={i} className="flex gap-2 text-[13px] text-content">
-                    <span className="text-dimmer w-4 shrink-0">{i + 1}.</span>{g}
+                  <li key={i} className="flex items-start gap-2 text-[13px] text-content">
+                    <span className="text-dimmer w-4 shrink-0 mt-0.5">{i + 1}.</span>
+                    <span className="flex-1">{g}</span>
+                    <GoalStatusBadge status={goals.monthlyStatus?.[i] ?? "not_done"} />
                   </li>
                 ) : null)}
               </ol>
@@ -217,10 +219,12 @@ function WeekRow({ entry, member }: { entry: WeekEntry; member: Member }) {
           {goals && goals.yearEnd.some((g) => g) && (
             <div>
               <p className="text-[10px] font-bold text-dimmer tracking-widest uppercase mb-2">Year-End Goals</p>
-              <ol className="space-y-1">
+              <ol className="space-y-1.5">
                 {goals.yearEnd.map((g, i) => g ? (
-                  <li key={i} className="flex gap-2 text-[13px] text-content">
-                    <span className="text-dimmer w-4 shrink-0">{i + 1}.</span>{g}
+                  <li key={i} className="flex items-start gap-2 text-[13px] text-content">
+                    <span className="text-dimmer w-4 shrink-0 mt-0.5">{i + 1}.</span>
+                    <span className="flex-1">{g}</span>
+                    <GoalStatusBadge status={goals.yearEndStatus?.[i] ?? "not_done"} />
                   </li>
                 ) : null)}
               </ol>
@@ -266,5 +270,13 @@ function ReflectionItem({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] font-semibold text-dim tracking-wider uppercase mb-1">{label}</p>
       <p className="text-[13px] text-content">{value}</p>
     </div>
+  );
+}
+
+function GoalStatusBadge({ status }: { status: GoalStatus }) {
+  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_done;
+  if (status === "not_done") return null;
+  return (
+    <span className={`shrink-0 text-[10px] font-bold ${cfg.color} mt-0.5`}>{cfg.label}</span>
   );
 }

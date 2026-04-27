@@ -430,31 +430,75 @@ export default function WeekSetupPage() {
 
                     {/* ── Quarterly ── */}
                     <Section label="QUARTERLY GOALS">
-                      <div className="space-y-2">
-                        {goals.monthly.map((val, i) => (
-                          <div key={i} className="flex items-center gap-2">
-                            <span className="text-muted-foreground text-[13px] w-4 shrink-0">{i + 1}</span>
-                            <input type="text" value={val} onChange={(e) => setMonthly(i, e.target.value)}
-                              placeholder={`Goal ${i + 1}...`}
-                              className="flex-1 bg-background border border-input rounded-xl px-3 py-2 text-[14px] text-foreground placeholder:text-placeholder outline-none focus:border-[#7c6af7] transition-colors"
-                            />
-                          </div>
-                        ))}
+                      <div className="space-y-3">
+                        {goals.monthly.map((val, i) => {
+                          const status = goals.monthlyStatus?.[i] ?? "not_done";
+                          const statusCfg = STATUS_OPTIONS.find((o) => o.value === status)!;
+                          return (
+                            <div key={i}>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-[11px] font-semibold text-dim tracking-wider">{i + 1}</span>
+                                <select
+                                  value={status}
+                                  onChange={(e) => {
+                                    const v = e.target.value as GoalStatus;
+                                    const next = [...(goals.monthlyStatus ?? ["not_done", "not_done", "not_done"])] as [GoalStatus, GoalStatus, GoalStatus];
+                                    next[i] = v;
+                                    setField("monthlyStatus", next);
+                                    if (v === "completed") setShowBorat(true);
+                                  }}
+                                  className="bg-background border border-input rounded-lg px-2 py-1 text-[11px] font-semibold outline-none cursor-pointer"
+                                  style={{ color: statusCfg.color }}
+                                >
+                                  {STATUS_OPTIONS.map((o) => (
+                                    <option key={o.value} value={o.value}>{o.label}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <input type="text" value={val} onChange={(e) => setMonthly(i, e.target.value)}
+                                placeholder={`Quarterly goal ${i + 1}...`}
+                                className="w-full bg-background border border-input rounded-xl px-3 py-2 text-[14px] text-foreground placeholder:text-placeholder outline-none focus:border-[#7c6af7] transition-colors"
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
                     </Section>
 
                     {/* ── Year-end ── */}
                     <Section label="YEAR-END GOALS">
-                      <div className="space-y-2">
-                        {goals.yearEnd.map((val, i) => (
-                          <div key={i} className="flex items-center gap-2">
-                            <span className="text-muted-foreground text-[13px] w-4 shrink-0">{i + 1}</span>
-                            <input type="text" value={val} onChange={(e) => setYearEnd(i, e.target.value)}
-                              placeholder={`Goal ${i + 1}...`}
-                              className="flex-1 bg-background border border-input rounded-xl px-3 py-2 text-[14px] text-foreground placeholder:text-placeholder outline-none focus:border-[#7c6af7] transition-colors"
-                            />
-                          </div>
-                        ))}
+                      <div className="space-y-3">
+                        {goals.yearEnd.map((val, i) => {
+                          const status = goals.yearEndStatus?.[i] ?? "not_done";
+                          const statusCfg = STATUS_OPTIONS.find((o) => o.value === status)!;
+                          return (
+                            <div key={i}>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-[11px] font-semibold text-dim tracking-wider">{i + 1}</span>
+                                <select
+                                  value={status}
+                                  onChange={(e) => {
+                                    const v = e.target.value as GoalStatus;
+                                    const next = [...(goals.yearEndStatus ?? ["not_done", "not_done", "not_done"])] as [GoalStatus, GoalStatus, GoalStatus];
+                                    next[i] = v;
+                                    setField("yearEndStatus", next);
+                                    if (v === "completed") setShowBorat(true);
+                                  }}
+                                  className="bg-background border border-input rounded-lg px-2 py-1 text-[11px] font-semibold outline-none cursor-pointer"
+                                  style={{ color: statusCfg.color }}
+                                >
+                                  {STATUS_OPTIONS.map((o) => (
+                                    <option key={o.value} value={o.value}>{o.label}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <input type="text" value={val} onChange={(e) => setYearEnd(i, e.target.value)}
+                                placeholder={`Year-end goal ${i + 1}...`}
+                                className="w-full bg-background border border-input rounded-xl px-3 py-2 text-[14px] text-foreground placeholder:text-placeholder outline-none focus:border-[#7c6af7] transition-colors"
+                              />
+                            </div>
+                          );
+                        })}
                       </div>
                     </Section>
 

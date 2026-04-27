@@ -6,6 +6,7 @@ import {
   Member,
   MemberGoals,
   BatteryScores,
+  GoalStatus,
   BATTERY_LABELS,
   AVATAR_BG,
   getWeekKey,
@@ -199,8 +200,10 @@ function MemberCard({
             {hasMonthly ? (
               <ol className="space-y-2">
                 {goals.monthly.map((g, i) => g ? (
-                  <li key={i} className="flex gap-2.5 text-[14px] text-content">
-                    <span className="text-dimmer shrink-0 w-4">{i + 1}</span>{g}
+                  <li key={i} className="flex items-start gap-2.5 text-[14px] text-content">
+                    <span className="text-dimmer shrink-0 w-4 mt-0.5">{i + 1}</span>
+                    <span className="flex-1">{g}</span>
+                    <GoalStatusDot status={goals.monthlyStatus?.[i] ?? "not_done"} />
                   </li>
                 ) : null)}
               </ol>
@@ -213,8 +216,10 @@ function MemberCard({
             {hasYearEnd ? (
               <ol className="space-y-2">
                 {goals.yearEnd.map((g, i) => g ? (
-                  <li key={i} className="flex gap-2.5 text-[14px] text-content">
-                    <span className="text-dimmer shrink-0 w-4">{i + 1}.</span>{g}
+                  <li key={i} className="flex items-start gap-2.5 text-[14px] text-content">
+                    <span className="text-dimmer shrink-0 w-4 mt-0.5">{i + 1}.</span>
+                    <span className="flex-1">{g}</span>
+                    <GoalStatusDot status={goals.yearEndStatus?.[i] ?? "not_done"} />
                   </li>
                 ) : null)}
               </ol>
@@ -315,4 +320,22 @@ function GoalRow({ tier, text, color }: { tier: string; text: string; color: str
 
 function NotSet() {
   return <p className="text-[13px] text-placeholder">Not set</p>;
+}
+
+const STATUS_DOT: Record<GoalStatus, { color: string; title: string }> = {
+  completed:  { color: "#10b981", title: "Completed" },
+  in_progress: { color: "#f59e0b", title: "In Progress" },
+  not_done:   { color: "#4b5563", title: "Not Done" },
+};
+
+function GoalStatusDot({ status }: { status: GoalStatus }) {
+  const cfg = STATUS_DOT[status] ?? STATUS_DOT.not_done;
+  if (status === "not_done") return null; // hide when nothing set yet
+  return (
+    <span
+      title={cfg.title}
+      className="shrink-0 mt-1 w-2 h-2 rounded-full inline-block"
+      style={{ backgroundColor: cfg.color }}
+    />
+  );
 }

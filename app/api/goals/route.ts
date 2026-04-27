@@ -32,7 +32,17 @@ export async function GET(req: NextRequest) {
         secondary: "",
         bonus: "",
         yearEnd: [p.year_end_1, p.year_end_2, p.year_end_3],
+        yearEndStatus: [
+          p.year_end_1_status ?? "not_done",
+          p.year_end_2_status ?? "not_done",
+          p.year_end_3_status ?? "not_done",
+        ],
         monthly: [p.monthly_1, p.monthly_2, p.monthly_3],
+        monthlyStatus: [
+          p.monthly_1_status ?? "not_done",
+          p.monthly_2_status ?? "not_done",
+          p.monthly_3_status ?? "not_done",
+        ],
         battery: {
           purposeClarity: p.battery_purpose_clarity,
           timeManagement: p.battery_time_management,
@@ -55,7 +65,17 @@ export async function GET(req: NextRequest) {
       secondary: r.secondary_goal,
       bonus: r.bonus_goal,
       yearEnd: [r.year_end_1, r.year_end_2, r.year_end_3],
+      yearEndStatus: [
+        r.year_end_1_status ?? "not_done",
+        r.year_end_2_status ?? "not_done",
+        r.year_end_3_status ?? "not_done",
+      ],
       monthly: [r.monthly_1, r.monthly_2, r.monthly_3],
+      monthlyStatus: [
+        r.monthly_1_status ?? "not_done",
+        r.monthly_2_status ?? "not_done",
+        r.monthly_3_status ?? "not_done",
+      ],
       battery: {
         purposeClarity: r.battery_purpose_clarity,
         timeManagement: r.battery_time_management,
@@ -79,12 +99,19 @@ export async function POST(req: NextRequest) {
     const g = await req.json();
     const id = `${g.memberId}-${g.weekKey}`;
 
+    const yes = ["completed", "in_progress", "not_done"];
+    const safeStatus = (v: unknown) => (yes.includes(v as string) ? v : "not_done");
+    const [yes1, yes2, yes3] = (g.yearEndStatus ?? []).map(safeStatus);
+    const [mon1, mon2, mon3] = (g.monthlyStatus ?? []).map(safeStatus);
+
     await sql`
       INSERT INTO member_goals (
         id, member_id, week_key,
         primary_goal, secondary_goal, bonus_goal,
         year_end_1, year_end_2, year_end_3,
+        year_end_1_status, year_end_2_status, year_end_3_status,
         monthly_1, monthly_2, monthly_3,
+        monthly_1_status, monthly_2_status, monthly_3_status,
         battery_purpose_clarity, battery_time_management, battery_personal_growth,
         battery_fitness, battery_nutrition, battery_sleep,
         battery_community, battery_family, battery_financial_wellbeing
@@ -92,7 +119,9 @@ export async function POST(req: NextRequest) {
         ${id}, ${g.memberId}, ${g.weekKey},
         ${g.primary}, ${g.secondary}, ${g.bonus},
         ${g.yearEnd[0]}, ${g.yearEnd[1]}, ${g.yearEnd[2]},
+        ${yes1}, ${yes2}, ${yes3},
         ${g.monthly[0]}, ${g.monthly[1]}, ${g.monthly[2]},
+        ${mon1}, ${mon2}, ${mon3},
         ${g.battery.purposeClarity}, ${g.battery.timeManagement}, ${g.battery.personalGrowth},
         ${g.battery.fitness}, ${g.battery.nutrition}, ${g.battery.sleep},
         ${g.battery.community}, ${g.battery.family}, ${g.battery.financialWellbeing}
@@ -102,7 +131,9 @@ export async function POST(req: NextRequest) {
         secondary_goal = ${g.secondary},
         bonus_goal = ${g.bonus},
         year_end_1 = ${g.yearEnd[0]}, year_end_2 = ${g.yearEnd[1]}, year_end_3 = ${g.yearEnd[2]},
+        year_end_1_status = ${yes1}, year_end_2_status = ${yes2}, year_end_3_status = ${yes3},
         monthly_1 = ${g.monthly[0]}, monthly_2 = ${g.monthly[1]}, monthly_3 = ${g.monthly[2]},
+        monthly_1_status = ${mon1}, monthly_2_status = ${mon2}, monthly_3_status = ${mon3},
         battery_purpose_clarity = ${g.battery.purposeClarity},
         battery_time_management = ${g.battery.timeManagement},
         battery_personal_growth = ${g.battery.personalGrowth},

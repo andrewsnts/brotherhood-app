@@ -48,11 +48,13 @@ export function seedIfEmpty() {
     secondary: "Get into AOD and make post",
     bonus: "Finish the colour on Bioregional video.",
     yearEnd: ["Finished and premiered Doc", "Get married", "Sell the doc"],
+    yearEndStatus: ["not_done", "not_done", "not_done"],
     monthly: [
       "1 additional option for storyline and format",
       "Zircuit Content Plan",
       "Posted MDMA video for Qi",
     ],
+    monthlyStatus: ["not_done", "not_done", "not_done"],
     battery: {
       purposeClarity: 8,
       timeManagement: 6,
@@ -73,7 +75,9 @@ export function seedIfEmpty() {
     secondary: "",
     bonus: "",
     yearEnd: ["", "", ""],
+    yearEndStatus: ["not_done", "not_done", "not_done"],
     monthly: ["", "", ""],
+    monthlyStatus: ["not_done", "not_done", "not_done"],
     battery: { ...DEFAULT_BATTERY },
   };
 
@@ -141,7 +145,9 @@ export function getOrCreateGoals(
       secondary: "",
       bonus: "",
       yearEnd: ["", "", ""],
+      yearEndStatus: ["not_done", "not_done", "not_done"],
       monthly: ["", "", ""],
+      monthlyStatus: ["not_done", "not_done", "not_done"],
       battery: { ...DEFAULT_BATTERY },
     }
   );

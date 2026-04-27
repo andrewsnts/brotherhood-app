@@ -22,9 +22,15 @@ export async function POST() {
         year_end_1 TEXT NOT NULL DEFAULT '',
         year_end_2 TEXT NOT NULL DEFAULT '',
         year_end_3 TEXT NOT NULL DEFAULT '',
+        year_end_1_status TEXT NOT NULL DEFAULT 'not_done',
+        year_end_2_status TEXT NOT NULL DEFAULT 'not_done',
+        year_end_3_status TEXT NOT NULL DEFAULT 'not_done',
         monthly_1 TEXT NOT NULL DEFAULT '',
         monthly_2 TEXT NOT NULL DEFAULT '',
         monthly_3 TEXT NOT NULL DEFAULT '',
+        monthly_1_status TEXT NOT NULL DEFAULT 'not_done',
+        monthly_2_status TEXT NOT NULL DEFAULT 'not_done',
+        monthly_3_status TEXT NOT NULL DEFAULT 'not_done',
         battery_purpose_clarity INTEGER NOT NULL DEFAULT 7,
         battery_time_management INTEGER NOT NULL DEFAULT 7,
         battery_personal_growth INTEGER NOT NULL DEFAULT 7,
@@ -36,6 +42,14 @@ export async function POST() {
         battery_financial_wellbeing INTEGER NOT NULL DEFAULT 7
       )
     `;
+
+    // Add status columns to existing member_goals table if missing
+    await sql`ALTER TABLE member_goals ADD COLUMN IF NOT EXISTS year_end_1_status TEXT NOT NULL DEFAULT 'not_done'`;
+    await sql`ALTER TABLE member_goals ADD COLUMN IF NOT EXISTS year_end_2_status TEXT NOT NULL DEFAULT 'not_done'`;
+    await sql`ALTER TABLE member_goals ADD COLUMN IF NOT EXISTS year_end_3_status TEXT NOT NULL DEFAULT 'not_done'`;
+    await sql`ALTER TABLE member_goals ADD COLUMN IF NOT EXISTS monthly_1_status TEXT NOT NULL DEFAULT 'not_done'`;
+    await sql`ALTER TABLE member_goals ADD COLUMN IF NOT EXISTS monthly_2_status TEXT NOT NULL DEFAULT 'not_done'`;
+    await sql`ALTER TABLE member_goals ADD COLUMN IF NOT EXISTS monthly_3_status TEXT NOT NULL DEFAULT 'not_done'`;
 
     await sql`
       CREATE TABLE IF NOT EXISTS daily_check_ins (

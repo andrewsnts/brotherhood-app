@@ -5,6 +5,8 @@ import BottomNav from "@/components/BottomNav";
 import {
   Member,
   MemberGoals,
+  BatteryScores,
+  BATTERY_LABELS,
   AVATAR_BG,
   getWeekKey,
   getGroupWeekNumber,
@@ -19,6 +21,7 @@ export default function GoalsBoard() {
   const [goalsMap, setGoalsMap] = useState<Record<string, MemberGoals>>({});
   const [batteryMap, setBatteryMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [flippedSet, setFlippedSet] = useState<Set<string>>(new Set());
   const now = new Date();
   const weekKey = getWeekKey(now);
   const weekNum = getGroupWeekNumber(now);
@@ -49,6 +52,14 @@ export default function GoalsBoard() {
   }, [weekKey]);
 
   useEffect(() => { load(); }, [load]);
+
+  function toggleFlip(id: string) {
+    setFlippedSet((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -82,7 +93,14 @@ export default function GoalsBoard() {
             const battery = batteryMap[member.id] ?? 0;
             if (!goals) return null;
             return (
-              <MemberCard key={member.id} member={member} goals={goals} battery={battery} />
+              <MemberCard
+                key={member.id}
+                member={member}
+                goals={goals}
+                battery={battery}
+                isFlipped={flippedSet.has(member.id)}
+                onFlip={() => toggleFlip(member.id)}
+              />
             );
           })}
           {!loading && members.length === 0 && (
@@ -99,21 +117,30 @@ export default function GoalsBoard() {
   );
 }
 
+// ── Battery icon ───────────────────────────────────────────
+
 function BatteryIcon({ pct }: { pct: number }) {
-  const fillW = Math.round((pct / 100) * 20); // 0–20px fill inside 22px body
+  const fillW = Math.round((pct / 100) * 20);
   return (
     <svg width="26" height="13" viewBox="0 0 26 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-      {/* Battery body */}
       <rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" strokeWidth="1.2" />
-      {/* Battery nub */}
       <rect x="23" y="4" width="3" height="5" rx="1" fill="currentColor" />
-      {/* Fill level */}
       <rect x="2" y="2" width={fillW} height="9" rx="1.5" fill="currentColor" />
     </svg>
   );
 }
 
-function MemberCard({ member, goals, battery }: { member: Member; goals: MemberGoals; battery: number }) {
+// ── Member card ────────────────────────────────────────────
+
+function MemberCard({
+  member, goals, battery, isFlipped, onFlip,
+}: {
+  member: Member;
+  goals: MemberGoals;
+  battery: number;
+  isFlipped: boolean;
+  onFlip: () => void;
+}) {
   const avatarBg = AVATAR_BG[member.color] ?? "bg-indigo-600";
   const batteryColor =
     battery >= 75 ? "#eab308" : battery >= 50 ? "#f59e0b" : battery >= 30 ? "#f97316" : "#ef4444";
@@ -122,62 +149,151 @@ function MemberCard({ member, goals, battery }: { member: Member; goals: MemberG
   const hasWeekly = goals.primary || goals.secondary || goals.bonus;
 
   return (
-    <div className="rounded-2xl bg-card overflow-hidden h-full flex flex-col">
-      <div className="flex items-center justify-between px-5 pt-4 pb-4">
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-full ${avatarBg} flex items-center justify-center text-white font-bold text-[16px]`}>
-            {member.name[0].toUpperCase()}
+    <div className="h-full" style={{ perspective: "1000px" }}>
+      <div
+        className="relative h-full transition-transform duration-500"
+        style={{
+          transformStyle: "preserve-3d",
+          transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+        }}
+      >
+        {/* ── Front ── */}
+        <div
+          className="rounded-2xl bg-card overflow-hidden h-full flex flex-col"
+          style={{ backfaceVisibility: "hidden" }}
+        >
+          <div className="flex items-center justify-between px-5 pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full ${avatarBg} flex items-center justify-center text-white font-bold text-[16px]`}>
+                {member.name[0].toUpperCase()}
+              </div>
+              <span className="text-foreground font-bold text-[18px]">{member.name}</span>
+            </div>
+            {/* Clickable battery */}
+            <button
+              onClick={onFlip}
+              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity cursor-pointer"
+              style={{ color: batteryColor }}
+              title="View battery breakdown"
+            >
+              <BatteryIcon pct={battery} />
+              <span className="font-bold text-[18px]">{battery}%</span>
+            </button>
           </div>
-          <span className="text-foreground font-bold text-[18px]">{member.name}</span>
+
+          <div className="h-px bg-border mx-5" />
+
+          <Section label="THIS WEEK">
+            {hasWeekly ? (
+              <div className="space-y-3">
+                {goals.primary && <GoalRow tier="Primary" text={goals.primary} color="#7c6af7" />}
+                {goals.secondary && <GoalRow tier="Secondary" text={goals.secondary} color="#a855f7" />}
+                {goals.bonus && <GoalRow tier="Bonus" text={goals.bonus} color="#eab308" />}
+              </div>
+            ) : <NotSet />}
+          </Section>
+
+          <div className="h-px bg-border mx-5" />
+
+          <Section label="QUARTERLY">
+            {hasMonthly ? (
+              <ol className="space-y-2">
+                {goals.monthly.map((g, i) => g ? (
+                  <li key={i} className="flex gap-2.5 text-[14px] text-content">
+                    <span className="text-dimmer shrink-0 w-4">{i + 1}</span>{g}
+                  </li>
+                ) : null)}
+              </ol>
+            ) : <NotSet />}
+          </Section>
+
+          <div className="h-px bg-border mx-5" />
+
+          <Section label="YEAR-END" last>
+            {hasYearEnd ? (
+              <ol className="space-y-2">
+                {goals.yearEnd.map((g, i) => g ? (
+                  <li key={i} className="flex gap-2.5 text-[14px] text-content">
+                    <span className="text-dimmer shrink-0 w-4">{i + 1}.</span>{g}
+                  </li>
+                ) : null)}
+              </ol>
+            ) : <NotSet />}
+          </Section>
         </div>
-        <div className="flex items-center gap-1.5" style={{ color: batteryColor }}>
-          <BatteryIcon pct={battery} />
-          <span className="font-bold text-[18px]">{battery}%</span>
+
+        {/* ── Back ── */}
+        <div
+          className="absolute inset-0 rounded-2xl bg-card overflow-hidden flex flex-col"
+          style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 pt-4 pb-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-full ${avatarBg} flex items-center justify-center text-white font-bold text-[16px]`}>
+                {member.name[0].toUpperCase()}
+              </div>
+              <div>
+                <p className="text-foreground font-bold text-[16px]">{member.name}</p>
+                <p className="text-[11px] text-muted-foreground">Battery breakdown</p>
+              </div>
+            </div>
+            <button
+              onClick={onFlip}
+              className="text-muted-foreground hover:text-foreground transition-colors p-1"
+              title="Back to goals"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="h-px bg-border mx-5" />
+
+          {/* Battery categories */}
+          <div className="px-5 py-4 flex-1 flex flex-col justify-between">
+            <div className="space-y-3">
+              {(Object.keys(BATTERY_LABELS) as (keyof BatteryScores)[]).map((key) => {
+                const score = goals.battery[key] ?? 0;
+                const barColor =
+                  score >= 8 ? "#eab308" : score >= 6 ? "#f59e0b" : score >= 4 ? "#f97316" : "#ef4444";
+                return (
+                  <div key={key} className="flex items-center gap-3">
+                    <span className="text-[12px] text-content flex-1 leading-tight">{BATTERY_LABELS[key]}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{ width: `${score * 10}%`, backgroundColor: barColor }}
+                        />
+                      </div>
+                      <span className="text-[13px] font-bold text-foreground w-4 text-right">{score}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="h-px bg-border mx-5" />
+
+          {/* Total */}
+          <div className="px-5 py-3 flex items-center justify-between">
+            <span className="text-[12px] font-bold text-dimmer tracking-widest uppercase">Total</span>
+            <div className="flex items-center gap-1.5" style={{ color: batteryColor }}>
+              <BatteryIcon pct={battery} />
+              <span className="text-[18px] font-bold">{battery}%</span>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div className="h-px bg-border mx-5" />
-
-      <Section label="THIS WEEK">
-        {hasWeekly ? (
-          <div className="space-y-3">
-            {goals.primary && <GoalRow tier="Primary" text={goals.primary} color="#7c6af7" />}
-            {goals.secondary && <GoalRow tier="Secondary" text={goals.secondary} color="#a855f7" />}
-            {goals.bonus && <GoalRow tier="Bonus" text={goals.bonus} color="#eab308" />}
-          </div>
-        ) : <NotSet />}
-      </Section>
-
-      <div className="h-px bg-border mx-5" />
-
-      <Section label="QUARTERLY">
-        {hasMonthly ? (
-          <ol className="space-y-2">
-            {goals.monthly.map((g, i) => g ? (
-              <li key={i} className="flex gap-2.5 text-[14px] text-content">
-                <span className="text-dimmer shrink-0 w-4">{i + 1}</span>{g}
-              </li>
-            ) : null)}
-          </ol>
-        ) : <NotSet />}
-      </Section>
-
-      <div className="h-px bg-border mx-5" />
-
-      <Section label="YEAR-END" last>
-        {hasYearEnd ? (
-          <ol className="space-y-2">
-            {goals.yearEnd.map((g, i) => g ? (
-              <li key={i} className="flex gap-2.5 text-[14px] text-content">
-                <span className="text-dimmer shrink-0 w-4">{i + 1}.</span>{g}
-              </li>
-            ) : null)}
-          </ol>
-        ) : <NotSet />}
-      </Section>
     </div>
   );
 }
+
+// ── Sub-components ────────────────────────────────────────
 
 function Section({ label, children, last }: { label: string; children: React.ReactNode; last?: boolean }) {
   return (

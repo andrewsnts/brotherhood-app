@@ -17,10 +17,14 @@ import {
 } from "@/lib/types";
 import { getMembers, getGoals, getLatestCheckInThisWeek, initDb } from "@/lib/api";
 
+type WeeklyStatuses = { primary: GoalStatus; secondary: GoalStatus; bonus: GoalStatus };
+const DEFAULT_STATUSES: WeeklyStatuses = { primary: "not_done", secondary: "not_done", bonus: "not_done" };
+
 export default function GoalsBoard() {
   const [members, setMembers] = useState<Member[]>([]);
   const [goalsMap, setGoalsMap] = useState<Record<string, MemberGoals>>({});
   const [batteryMap, setBatteryMap] = useState<Record<string, number>>({});
+  const [statusMap, setStatusMap] = useState<Record<string, WeeklyStatuses>>({});
   const [loading, setLoading] = useState(true);
   const [flippedSet, setFlippedSet] = useState<Set<string>>(new Set());
   const now = new Date();
@@ -37,16 +41,21 @@ export default function GoalsBoard() {
       setMembers(m);
       const gmap: Record<string, MemberGoals> = {};
       const bmap: Record<string, number> = {};
+      const smap: Record<string, WeeklyStatuses> = {};
       await Promise.all(
         m.map(async (member) => {
           const goals = await getGoals(member.id, weekKey);
           gmap[member.id] = goals;
           const ci = await getLatestCheckInThisWeek(member.id, weekKey);
           bmap[member.id] = ci ? ci.batteryPercent : calcBatteryPercent(goals.battery);
+          smap[member.id] = ci
+            ? { primary: ci.primaryStatus, secondary: ci.secondaryStatus, bonus: ci.bonusStatus }
+            : { ...DEFAULT_STATUSES };
         })
       );
       setGoalsMap(gmap);
       setBatteryMap(bmap);
+      setStatusMap(smap);
     } finally {
       setLoading(false);
     }
@@ -92,6 +101,7 @@ export default function GoalsBoard() {
           {!loading && members.map((member) => {
             const goals = goalsMap[member.id];
             const battery = batteryMap[member.id] ?? 0;
+            const weeklyStatuses = statusMap[member.id] ?? DEFAULT_STATUSES;
             if (!goals) return null;
             return (
               <MemberCard
@@ -99,6 +109,7 @@ export default function GoalsBoard() {
                 member={member}
                 goals={goals}
                 battery={battery}
+                weeklyStatuses={weeklyStatuses}
                 isFlipped={flippedSet.has(member.id)}
                 onFlip={() => toggleFlip(member.id)}
               />
@@ -134,11 +145,12 @@ function BatteryIcon({ pct }: { pct: number }) {
 // ── Member card ────────────────────────────────────────────
 
 function MemberCard({
-  member, goals, battery, isFlipped, onFlip,
+  member, goals, battery, weeklyStatuses, isFlipped, onFlip,
 }: {
   member: Member;
   goals: MemberGoals;
   battery: number;
+  weeklyStatuses: WeeklyStatuses;
   isFlipped: boolean;
   onFlip: () => void;
 }) {
@@ -187,9 +199,9 @@ function MemberCard({
           <Section label="THIS WEEK">
             {hasWeekly ? (
               <div className="space-y-3">
-                {goals.primary && <GoalRow tier="Primary" text={goals.primary} color="#7c6af7" />}
-                {goals.secondary && <GoalRow tier="Secondary" text={goals.secondary} color="#a855f7" />}
-                {goals.bonus && <GoalRow tier="Bonus" text={goals.bonus} color="#eab308" />}
+                {goals.primary && <GoalRow tier="Primary" text={goals.primary} color="#7c6af7" status={weeklyStatuses.primary} />}
+                {goals.secondary && <GoalRow tier="Secondary" text={goals.secondary} color="#a855f7" status={weeklyStatuses.secondary} />}
+                {goals.bonus && <GoalRow tier="Bonus" text={goals.bonus} color="#eab308" status={weeklyStatuses.bonus} />}
               </div>
             ) : <NotSet />}
           </Section>
@@ -309,11 +321,25 @@ function Section({ label, children, last }: { label: string; children: React.Rea
   );
 }
 
-function GoalRow({ tier, text, color }: { tier: string; text: string; color: string }) {
+function GoalRow({ tier, text, color, status }: { tier: string; text: string; color: string; status: GoalStatus }) {
+  const isCompleted = status === "completed";
+  const isInProgress = status === "in_progress";
+  const textColor = isCompleted ? "#10b981" : isInProgress ? "#f59e0b" : undefined;
+
   return (
-    <div className="flex items-baseline gap-3">
-      <span className="text-[13px] font-semibold w-[72px] shrink-0" style={{ color }}>{tier}</span>
-      <span className="text-[14px] text-content leading-snug block min-h-[2.5rem]">{text}</span>
+    <div className="flex items-start gap-3">
+      <span className="text-[13px] font-semibold w-[72px] shrink-0 mt-0.5" style={{ color }}>{tier}</span>
+      <div className="flex items-start gap-1.5 flex-1 min-h-[2.5rem]">
+        {isCompleted && (
+          <svg className="shrink-0 mt-[3px]" width="13" height="13" viewBox="0 0 24 24" fill="none"
+            stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
+        <span className="text-[14px] leading-snug" style={{ color: textColor ?? "var(--content)" }}>
+          {text}
+        </span>
+      </div>
     </div>
   );
 }

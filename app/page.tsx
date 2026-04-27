@@ -73,7 +73,7 @@ export default function GoalsBoard() {
           </div>
         </div>
 
-        <div className="px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
+        <div className="px-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
           {loading && (
             <p className="text-center text-dimmer py-20 text-sm col-span-full">Loading...</p>
           )}
@@ -108,7 +108,7 @@ function MemberCard({ member, goals, battery }: { member: Member; goals: MemberG
   const hasWeekly = goals.primary || goals.secondary || goals.bonus;
 
   return (
-    <div className="rounded-2xl bg-card overflow-hidden">
+    <div className="rounded-2xl bg-card overflow-hidden h-full flex flex-col">
       <div className="flex items-center justify-between px-5 pt-4 pb-4">
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-full ${avatarBg} flex items-center justify-center text-white font-bold text-[16px]`}>
@@ -164,7 +164,7 @@ function MemberCard({ member, goals, battery }: { member: Member; goals: MemberG
 
 function Section({ label, children, last }: { label: string; children: React.ReactNode; last?: boolean }) {
   return (
-    <div className={`px-5 ${last ? "pt-4 pb-5" : "py-4"}`}>
+    <div className={`px-5 ${last ? "pt-4 pb-5 flex-1" : "py-4"}`}>
       <p className="text-[10px] font-bold text-dimmer tracking-[0.15em] uppercase mb-3">{label}</p>
       {children}
     </div>
@@ -175,7 +175,7 @@ function GoalRow({ tier, text, color }: { tier: string; text: string; color: str
   return (
     <div className="flex items-baseline gap-3">
       <span className="text-[13px] font-semibold w-[72px] shrink-0" style={{ color }}>{tier}</span>
-      <span className="text-[14px] text-content leading-snug">{text}</span>
+      <span className="text-[14px] text-content leading-snug block min-h-[2.5rem]">{text}</span>
     </div>
   );
 }

@@ -37,7 +37,11 @@ export default function GoalsBoard() {
     setLoading(true);
     try {
       await initDb();
-      const m = await getMembers();
+      const raw = await getMembers();
+      const lastId = typeof window !== "undefined" ? localStorage.getItem("bh_last_member") : null;
+      const m = lastId
+        ? [...raw].sort((a, b) => (a.id === lastId ? -1 : b.id === lastId ? 1 : 0))
+        : raw;
       setMembers(m);
       const gmap: Record<string, MemberGoals> = {};
       const bmap: Record<string, number> = {};

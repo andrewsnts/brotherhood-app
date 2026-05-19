@@ -197,13 +197,30 @@ const SCHEDULE: WeekData[] = [
 // ── Current Session Detection ──────────────────────────────
 const FIRST_TUESDAY = new Date("2026-03-31T00:00:00");
 
+function getSessionDate(week: number, sessionIdx: number): Date {
+  const d = new Date(FIRST_TUESDAY);
+  d.setDate(FIRST_TUESDAY.getDate() + (week - 1) * 7 + sessionIdx * 2);
+  return d;
+}
+
+/** True once the calendar day of that session has fully ended (midnight). */
+function isSessionPast(week: number, sessionIdx: number): boolean {
+  const d = getSessionDate(week, sessionIdx);
+  const endOfDay = new Date(d);
+  endOfDay.setHours(23, 59, 59, 999);
+  return new Date() > endOfDay;
+}
+
+/** True once the Thursday (last session) of that week has fully ended. */
+function isWeekDone(week: number): boolean {
+  return isSessionPast(week, 1);
+}
+
 function getCurrentSession(): { week: number; idx: number } {
   const now = new Date();
   for (let w = 1; w <= 8; w++) {
-    const tue = new Date(FIRST_TUESDAY);
-    tue.setDate(FIRST_TUESDAY.getDate() + (w - 1) * 7);
-    const thu = new Date(tue);
-    thu.setDate(tue.getDate() + 2);
+    const tue = getSessionDate(w, 0);
+    const thu = getSessionDate(w, 1);
     const nextTue = new Date(tue);
     nextTue.setDate(tue.getDate() + 7);
 
@@ -305,10 +322,11 @@ export default function IronJohnPage() {
           {SCHEDULE.map((week) => {
             const isOpen = openWeeks.has(week.week);
             const hasCurrentSession = week.week === current.week;
+            const weekDone = isWeekDone(week.week);
 
             return (
               <div key={week.week}
-                className={`rounded-2xl overflow-hidden border ${week.catchup ? "border-amber-500/30" : hasCurrentSession ? "border-[#7c6af7]/40" : "border-border"} bg-card`}>
+                className={`rounded-2xl overflow-hidden border ${week.catchup ? "border-amber-500/30" : hasCurrentSession ? "border-[#7c6af7]/40" : weekDone ? "border-emerald-500/25" : "border-border"} bg-card`}>
                 {/* Week header */}
                 <button onClick={() => toggleWeek(week.week)}
                   className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-muted/50 transition-colors">
@@ -322,7 +340,7 @@ export default function IronJohnPage() {
                     <span className="text-[10px] font-semibold bg-[#7c6af7]/20 text-[#7c6af7] rounded-md px-2 py-0.5 shrink-0">current</span>
                   )}
                   <span className="text-[14px] font-semibold text-foreground flex-1 truncate">{week.theme}</span>
-                  {week.done && <span className="text-[11px] text-emerald-400 shrink-0">✓ done</span>}
+                  {weekDone && <span className="text-[11px] text-emerald-400 shrink-0">✓ done</span>}
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
                     className={`shrink-0 transition-transform ${isOpen ? "rotate-90" : ""}`}>
                     <polyline points="9 18 15 12 9 6" />
@@ -335,11 +353,13 @@ export default function IronJohnPage() {
                     {week.sessions.map((session, idx) => {
                       const isCurrent = week.week === current.week && idx === current.idx;
                       const pid = partId(week.week, idx);
+                      const isPast = isSessionPast(week.week, idx);
                       return (
                         <SessionCard
                           key={idx}
                           session={session}
                           isCurrent={isCurrent}
+                          isPast={isPast}
                           partId={pid}
                           activeMemberId={activeMemberId}
                           members={members}
@@ -362,10 +382,11 @@ export default function IronJohnPage() {
 }
 
 function SessionCard({
-  session, isCurrent, partId, activeMemberId, members, entries, setEntries,
+  session, isCurrent, isPast, partId, activeMemberId, members, entries, setEntries,
 }: {
   session: SessionData;
   isCurrent: boolean;
+  isPast: boolean;
   partId: number;
   activeMemberId: string | null;
   members: { id: string; name: string; color: string }[];
@@ -414,7 +435,7 @@ function SessionCard({
     ? "border-[#7c6af7]/50 bg-[#7c6af7]/5"
     : session.missed
     ? "border-amber-500/30 opacity-60"
-    : session.done
+    : isPast
     ? "border-emerald-500/20"
     : "border-border";
 
@@ -433,7 +454,7 @@ function SessionCard({
             </span>
           )}
           {session.missed && <span className="text-[11px] font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full">missed</span>}
-          {session.done && !isCurrent && <span className="text-[11px] text-emerald-400">✓</span>}
+          {isPast && !isCurrent && <span className="text-[11px] text-emerald-400">✓</span>}
           {isCompleted && <span className="text-[11px] text-emerald-400 ml-auto">Journal saved ✓</span>}
         </div>
         <p className="text-[14px] font-semibold text-foreground">{session.label}</p>

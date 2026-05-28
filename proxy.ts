@@ -19,7 +19,6 @@ export default auth((req) => {
   }
 
   // Signed in but hasn't linked a member yet → go to link-member
-  // (allow /link-member itself through)
   if (!req.auth.user?.memberId && pathname !== "/link-member") {
     return NextResponse.redirect(new URL("/link-member", req.url));
   }

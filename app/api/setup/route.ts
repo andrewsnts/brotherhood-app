@@ -3,6 +3,58 @@ import { NextResponse } from "next/server";
 
 export async function POST() {
   try {
+    // ── NextAuth tables ──────────────────────────────────────
+    await sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT NOT NULL DEFAULT gen_random_uuid(),
+        name TEXT,
+        email TEXT NOT NULL,
+        "emailVerified" TIMESTAMPTZ,
+        image TEXT,
+        member_id TEXT,
+        CONSTRAINT users_pkey PRIMARY KEY (id)
+      )
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS accounts (
+        "userId" TEXT NOT NULL,
+        type TEXT NOT NULL,
+        provider TEXT NOT NULL,
+        "providerAccountId" TEXT NOT NULL,
+        refresh_token TEXT,
+        access_token TEXT,
+        expires_at INTEGER,
+        token_type TEXT,
+        scope TEXT,
+        id_token TEXT,
+        session_state TEXT,
+        CONSTRAINT accounts_pkey PRIMARY KEY (provider, "providerAccountId")
+      )
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS sessions (
+        "sessionToken" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        expires TIMESTAMPTZ NOT NULL,
+        CONSTRAINT sessions_pkey PRIMARY KEY ("sessionToken")
+      )
+    `;
+
+    await sql`
+      CREATE TABLE IF NOT EXISTS verification_tokens (
+        identifier TEXT NOT NULL,
+        token TEXT NOT NULL,
+        expires TIMESTAMPTZ NOT NULL,
+        CONSTRAINT verification_tokens_pkey PRIMARY KEY (identifier, token)
+      )
+    `;
+
+    // Add member_id to existing users table if missing
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS member_id TEXT`;
+
+    // ── App tables ───────────────────────────────────────────
     await sql`
       CREATE TABLE IF NOT EXISTS members (
         id TEXT PRIMARY KEY,

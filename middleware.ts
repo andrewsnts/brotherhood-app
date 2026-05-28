@@ -1,23 +1,31 @@
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
-const COOKIE = "bh_auth";
-
-export function middleware(req: NextRequest) {
+export default auth((req) => {
   const { pathname } = req.nextUrl;
 
-  // Allow login page and its API route through
-  if (pathname.startsWith("/login") || pathname.startsWith("/api/login")) {
+  // Always allow auth routes and static assets
+  if (
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/_next") ||
+    pathname === "/login"
+  ) {
     return NextResponse.next();
   }
 
-  const auth = req.cookies.get(COOKIE)?.value;
-  if (auth === "1") return NextResponse.next();
+  // Not signed in → go to login
+  if (!req.auth) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
 
-  // Redirect to login, preserving destination
-  const url = req.nextUrl.clone();
-  url.pathname = "/login";
-  return NextResponse.redirect(url);
-}
+  // Signed in but hasn't linked a member yet → go to link-member
+  // (allow /link-member itself through)
+  if (!req.auth.user?.memberId && pathname !== "/link-member") {
+    return NextResponse.redirect(new URL("/link-member", req.url));
+  }
+
+  return NextResponse.next();
+});
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],

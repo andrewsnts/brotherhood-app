@@ -4,9 +4,11 @@ import { NextResponse } from "next/server";
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
-  // Always allow auth routes and static assets
+  // Always allow auth routes, setup, and static assets
   if (
     pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/setup") ||
+    pathname.startsWith("/api/seed") ||
     pathname.startsWith("/_next") ||
     pathname === "/login"
   ) {

@@ -18,6 +18,7 @@ export async function POST() {
 
     await sql`
       CREATE TABLE IF NOT EXISTS accounts (
+        id TEXT NOT NULL DEFAULT gen_random_uuid(),
         "userId" TEXT NOT NULL,
         type TEXT NOT NULL,
         provider TEXT NOT NULL,
@@ -29,9 +30,12 @@ export async function POST() {
         scope TEXT,
         id_token TEXT,
         session_state TEXT,
-        CONSTRAINT accounts_pkey PRIMARY KEY (provider, "providerAccountId")
+        CONSTRAINT accounts_pkey PRIMARY KEY (id)
       )
     `;
+
+    // Add id column to existing accounts table if missing
+    await sql`ALTER TABLE accounts ADD COLUMN IF NOT EXISTS id TEXT NOT NULL DEFAULT gen_random_uuid()`;
 
     await sql`
       CREATE TABLE IF NOT EXISTS sessions (

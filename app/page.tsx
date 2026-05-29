@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import {
   Member,
@@ -23,21 +21,12 @@ type WeeklyStatuses = { primary: GoalStatus; secondary: GoalStatus; bonus: GoalS
 const DEFAULT_STATUSES: WeeklyStatuses = { primary: "not_done", secondary: "not_done", bonus: "not_done" };
 
 export default function GoalsBoard() {
-  const { data: session, status: sessionStatus } = useSession();
-  const router = useRouter();
   const [members, setMembers] = useState<Member[]>([]);
   const [goalsMap, setGoalsMap] = useState<Record<string, MemberGoals>>({});
   const [batteryMap, setBatteryMap] = useState<Record<string, number>>({});
   const [statusMap, setStatusMap] = useState<Record<string, WeeklyStatuses>>({});
   const [loading, setLoading] = useState(true);
   const [flippedSet, setFlippedSet] = useState<Set<string>>(new Set());
-
-  // Belt-and-suspenders: if session loaded and memberId not set, go to link-member
-  useEffect(() => {
-    if (sessionStatus === "authenticated" && !session?.user?.memberId) {
-      router.replace("/link-member");
-    }
-  }, [sessionStatus, session?.user?.memberId, router]);
   const now = new Date();
   const weekKey = getWeekKey(now);
   const weekNum = getGroupWeekNumber(now);

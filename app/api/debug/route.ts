@@ -27,12 +27,12 @@ export async function GET() {
   });
 }
 
-// DELETE: clear the current user's member_id so they go through link-member again
+// DELETE: wipe all auth tables so users can sign in fresh
+// Safe to call — does NOT touch members, member_goals, daily_check_ins, etc.
 export async function DELETE() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-  }
-  await sql`UPDATE users SET member_id = NULL WHERE id = ${session.user.id}`;
-  return NextResponse.json({ ok: true, cleared: session.user.id });
+  await sql`DELETE FROM sessions`;
+  await sql`DELETE FROM accounts`;
+  await sql`DELETE FROM verification_tokens`;
+  await sql`DELETE FROM users`;
+  return NextResponse.json({ ok: true, message: "Auth tables cleared. Sign in again." });
 }

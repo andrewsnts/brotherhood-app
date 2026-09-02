@@ -16,7 +16,8 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  if (!req.auth) {
+  // Not signed in — req.auth may be {} with database sessions, so check for user.id
+  if (!req.auth?.user?.id) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 

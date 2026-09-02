@@ -22,12 +22,26 @@ export async function POST() {
   try {
     const existing = await sql`SELECT id FROM members LIMIT 1`;
     if (existing.length > 0) {
+      // Still patch group_id onto existing members if the groups table is new
+      await sql`
+        INSERT INTO groups (id, name, invite_code, created_at)
+        VALUES ('brotherhood-group', 'Brotherhood', 'BRHD01', '2026-01-01')
+        ON CONFLICT DO NOTHING
+      `;
+      await sql`UPDATE members SET group_id = 'brotherhood-group' WHERE id IN ('andrew', 'kiem') AND group_id IS NULL`;
       return NextResponse.json({ ok: true, skipped: true });
     }
 
     const weekKey = getWeekKey(new Date());
 
-    await sql`INSERT INTO members (id, name, color) VALUES ('andrew', 'Andrew', 'indigo'), ('kiem', 'Kiem', 'purple') ON CONFLICT DO NOTHING`;
+    // Create the default Brotherhood group
+    await sql`
+      INSERT INTO groups (id, name, invite_code, created_at)
+      VALUES ('brotherhood-group', 'Brotherhood', 'BRHD01', '2026-01-01')
+      ON CONFLICT DO NOTHING
+    `;
+
+    await sql`INSERT INTO members (id, name, color, group_id) VALUES ('andrew', 'Andrew', 'indigo', 'brotherhood-group'), ('kiem', 'Kiem', 'purple', 'brotherhood-group') ON CONFLICT DO NOTHING`;
 
     await sql`
       INSERT INTO member_goals (

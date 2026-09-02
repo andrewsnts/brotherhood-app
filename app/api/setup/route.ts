@@ -55,17 +55,32 @@ export async function POST() {
       )
     `;
 
-    // Add member_id to existing users table if missing
+    // Add member_id and group_id to existing users table if missing
     await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS member_id TEXT`;
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS group_id TEXT`;
 
     // ── App tables ───────────────────────────────────────────
+    await sql`
+      CREATE TABLE IF NOT EXISTS groups (
+        id TEXT NOT NULL DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        invite_code TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        CONSTRAINT groups_pkey PRIMARY KEY (id),
+        CONSTRAINT groups_invite_code_unique UNIQUE (invite_code)
+      )
+    `;
+
     await sql`
       CREATE TABLE IF NOT EXISTS members (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        color TEXT NOT NULL DEFAULT 'indigo'
+        color TEXT NOT NULL DEFAULT 'indigo',
+        group_id TEXT REFERENCES groups(id) ON DELETE CASCADE
       )
     `;
+
+    await sql`ALTER TABLE members ADD COLUMN IF NOT EXISTS group_id TEXT REFERENCES groups(id) ON DELETE CASCADE`;
 
     await sql`
       CREATE TABLE IF NOT EXISTS member_goals (

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { AVATAR_BG } from "@/lib/types";
-import { initDb } from "@/lib/api";
 
 const COLORS = [
   { id: "indigo", label: "Indigo", cls: "bg-indigo-600" },
@@ -24,8 +23,6 @@ export default function JoinPage() {
   const [tab, setTab] = useState<Tab>("join");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => { initDb(); }, []);
 
   // Join flow
   const [code, setCode] = useState("");

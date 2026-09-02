@@ -3,6 +3,7 @@ import Google from "next-auth/providers/google";
 import NeonAdapter from "@auth/neon-adapter";
 import { Pool } from "@neondatabase/serverless";
 
+// Extend session type to include memberId
 declare module "next-auth" {
   interface Session {
     user: {
@@ -11,7 +12,6 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       memberId: string | null;
-      groupId: string | null;
     };
   }
 }
@@ -30,10 +30,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: { strategy: "database" },
   callbacks: {
+    // Attach memberId from the users table into every session
     session({ session, user }) {
       session.user.id = user.id;
-      session.user.memberId = (user as { member_id?: string | null }).member_id ?? null;
-      session.user.groupId = (user as { group_id?: string | null }).group_id ?? null;
+      session.user.memberId =
+        (user as { member_id?: string | null }).member_id ?? null;
       return session;
     },
   },

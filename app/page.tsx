@@ -12,6 +12,7 @@ import {
   getWeekKey,
   getGroupWeekNumber,
   getGroupDayNumber,
+  COHORT_TOTAL_WEEKDAYS,
   getQuarter,
   calcBatteryPercent,
 } from "@/lib/types";
@@ -92,7 +93,7 @@ export default function GoalsBoard() {
           <div className="flex items-center gap-2 mt-2">
             <span className="text-[13px] text-muted-foreground">Week {weekNum}</span>
             <span className="text-dimmer">·</span>
-            <span className="text-[13px] text-muted-foreground">Day {dayNum}</span>
+            <span className="text-[13px] text-muted-foreground">Day {dayNum} / {COHORT_TOTAL_WEEKDAYS} days</span>
             <span className="text-dimmer">·</span>
             <span className="text-[13px] text-muted-foreground">All members</span>
           </div>

@@ -108,10 +108,23 @@ export function getGroupWeekNumber(date: Date): number {
   return Math.max(1, Math.floor(diff / msPerWeek) + 1);
 }
 
+// Total weekdays in the Q4 cohort (Sept 7 – Oct 30, 2026)
+export const COHORT_TOTAL_WEEKDAYS = 40;
+
 export function getGroupDayNumber(date: Date): number {
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const diff = date.getTime() - GROUP_START.getTime();
-  return Math.max(1, Math.floor(diff / msPerDay) + 1);
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const start = new Date(GROUP_START);
+  start.setHours(0, 0, 0, 0);
+  if (d < start) return 0;
+  let count = 0;
+  const cur = new Date(start);
+  while (cur <= d) {
+    const day = cur.getDay();
+    if (day !== 0 && day !== 6) count++;
+    cur.setDate(cur.getDate() + 1);
+  }
+  return Math.max(1, count);
 }
 
 export function getWeekNumber(date: Date): number {

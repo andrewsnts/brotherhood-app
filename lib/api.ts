@@ -113,32 +113,22 @@ export async function saveCheckIn(checkIn: DailyCheckIn): Promise<void> {
   if (!res.ok) throw new Error("Failed to save check-in");
 }
 
-// ── Iron John ─────────────────────────────────────────────────────────────────
+// ── Morning streaks ───────────────────────────────────────────────────────────
 
-export interface IronJohnJournal {
-  memberId: string;
-  partId: number;
-  reflection: string;
-  practiceNote: string;
-  completedAt: string | null;
-}
-
-export async function getIronJohnJournal(
-  memberId: string,
-  partId: number
-): Promise<IronJohnJournal | null> {
-  const res = await fetch(`/api/ironjohn/${memberId}/${partId}`);
-  if (!res.ok) return null;
+export async function getMorningStreaks(): Promise<{ streaks: Record<string, number>; todayCheckins: string[] }> {
+  const res = await fetch("/api/morning-checkin");
+  if (!res.ok) return { streaks: {}, todayCheckins: [] };
   return res.json();
 }
 
-export async function saveIronJohnJournal(journal: IronJohnJournal): Promise<void> {
-  const res = await fetch(`/api/ironjohn/${journal.memberId}/${journal.partId}`, {
+export async function recordMorningCheckin(memberId: string, date: string): Promise<{ ok: boolean; streak: number }> {
+  const res = await fetch("/api/morning-checkin", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(journal),
+    body: JSON.stringify({ memberId, date }),
   });
-  if (!res.ok) throw new Error("Failed to save journal");
+  if (!res.ok) return { ok: false, streak: 0 };
+  return res.json();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────

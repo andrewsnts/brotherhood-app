@@ -23,8 +23,24 @@ import {
   saveGoals,
   getLatestCheckInThisWeek,
   saveCheckIn,
+  getMorningStreaks,
+  recordMorningCheckin,
   initDb,
 } from "@/lib/api";
+
+// ── Morning check-in helpers ───────────────────────────────
+
+function getLADate(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+}
+
+function isCheckinWindow(): boolean {
+  const la = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+  const dow = la.getDay();
+  if (dow === 0 || dow === 6) return false;
+  const mins = la.getHours() * 60 + la.getMinutes();
+  return mins >= 5 * 60 + 45 && mins <= 6 * 60 + 5;
+}
 
 // ── Week helpers ───────────────────────────────────────────
 
@@ -115,6 +131,12 @@ export default function WeekSetupPage() {
   const [selectedWeekKey, setSelectedWeekKey] = useState(currentWeekKey);
   const [showBorat, setShowBorat] = useState(false);
 
+  // Morning check-in
+  const [morningStreak, setMorningStreak] = useState(0);
+  const [checkedInToday, setCheckedInToday] = useState(false);
+  const [inWindow, setInWindow] = useState(false);
+  const [checkingIn, setCheckingIn] = useState(false);
+
   // Check-in fields
   const [primaryStatus, setPrimaryStatus] = useState<GoalStatus>("not_done");
   const [secondaryStatus, setSecondaryStatus] = useState<GoalStatus>("not_done");
@@ -155,6 +177,30 @@ export default function WeekSetupPage() {
   }
 
   useEffect(() => { load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load morning streak when selected member changes
+  useEffect(() => {
+    if (!selectedId) return;
+    getMorningStreaks().then((data) => {
+      setMorningStreak(data.streaks[selectedId] ?? 0);
+      setCheckedInToday(data.todayCheckins.includes(selectedId));
+    });
+  }, [selectedId]);
+
+  // Poll window status every 30s
+  useEffect(() => {
+    setInWindow(isCheckinWindow());
+    const t = setInterval(() => setInWindow(isCheckinWindow()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
+  async function handleMorningCheckin() {
+    if (!selectedId || !inWindow || checkedInToday || checkingIn) return;
+    setCheckingIn(true);
+    const result = await recordMorningCheckin(selectedId, getLADate());
+    if (result.ok) { setCheckedInToday(true); setMorningStreak(result.streak); }
+    setCheckingIn(false);
+  }
 
   // ── Auto-save (goals + check-in together) ─────────────
 
@@ -303,6 +349,45 @@ export default function WeekSetupPage() {
           <div className="px-5 pt-8 pb-4">
             <h2 className="text-[32px] font-bold text-foreground leading-none">Goal Setup</h2>
           </div>
+
+          {/* Morning check-in */}
+          {selectedId && (
+            <div className="px-4 mb-4">
+              <div className="bg-card rounded-2xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-[11px] font-bold text-dimmer tracking-[0.15em] uppercase">Morning Check-In</p>
+                    <p className="text-[12px] text-muted-foreground mt-0.5">5:45 – 6:05 AM · Weekdays</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[22px] leading-none">🔥</span>
+                    <span className="text-[22px] font-bold text-foreground leading-none">{morningStreak}</span>
+                    <span className="text-[12px] text-muted-foreground ml-0.5">days</span>
+                  </div>
+                </div>
+                {checkedInToday ? (
+                  <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-2.5">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span className="text-[13px] font-semibold" style={{ color: "#10b981" }}>Checked in today!</span>
+                  </div>
+                ) : inWindow ? (
+                  <button
+                    onClick={handleMorningCheckin}
+                    disabled={checkingIn}
+                    className="w-full py-2.5 rounded-xl bg-[#7c6af7] text-white text-[14px] font-semibold hover:bg-[#6c5ae7] disabled:opacity-50 transition-colors"
+                  >
+                    {checkingIn ? "Saving…" : "🌅 Good morning! Check In"}
+                  </button>
+                ) : (
+                  <div className="w-full py-2.5 rounded-xl bg-muted text-center text-[13px] text-muted-foreground">
+                    Opens weekdays 5:45 – 6:05 AM
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Week selector */}
           <div className="px-4 mb-3">

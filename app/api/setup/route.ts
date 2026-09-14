@@ -123,6 +123,17 @@ export async function POST() {
     `;
 
     await sql`
+      CREATE TABLE IF NOT EXISTS morning_checkins (
+        id TEXT NOT NULL DEFAULT gen_random_uuid(),
+        member_id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        checked_in_at TEXT NOT NULL,
+        CONSTRAINT morning_checkins_pkey PRIMARY KEY (id),
+        CONSTRAINT morning_checkins_member_date UNIQUE (member_id, date)
+      )
+    `;
+
+    await sql`
       CREATE TABLE IF NOT EXISTS resources (
         id TEXT PRIMARY KEY,
         member_id TEXT NOT NULL,

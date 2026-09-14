@@ -16,7 +16,7 @@ import {
   getQuarter,
   calcBatteryPercent,
 } from "@/lib/types";
-import { getMembers, getGoals, getLatestCheckInThisWeek, initDb } from "@/lib/api";
+import { getMembers, getGoals, getLatestCheckInThisWeek, getMorningStreaks, initDb } from "@/lib/api";
 
 // ── Week selector helpers ──────────────────────────────────
 
@@ -58,6 +58,7 @@ export default function GoalsBoard() {
   const [goalsMap, setGoalsMap] = useState<Record<string, MemberGoals>>({});
   const [batteryMap, setBatteryMap] = useState<Record<string, number>>({});
   const [statusMap, setStatusMap] = useState<Record<string, WeeklyStatuses>>({});
+  const [streakMap, setStreakMap] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [flippedSet, setFlippedSet] = useState<Set<string>>(new Set());
   const now = new Date();
@@ -74,12 +75,13 @@ export default function GoalsBoard() {
     setLoading(true);
     try {
       await initDb();
-      const raw = await getMembers();
+      const [raw, morningData] = await Promise.all([getMembers(), getMorningStreaks()]);
       const lastId = typeof window !== "undefined" ? localStorage.getItem("bh_last_member") : null;
       const m = lastId
         ? [...raw].sort((a, b) => (a.id === lastId ? -1 : b.id === lastId ? 1 : 0))
         : raw;
       setMembers(m);
+      setStreakMap(morningData.streaks);
       const gmap: Record<string, MemberGoals> = {};
       const bmap: Record<string, number> = {};
       const smap: Record<string, WeeklyStatuses> = {};
@@ -161,6 +163,7 @@ export default function GoalsBoard() {
                 goals={goals}
                 battery={battery}
                 weeklyStatuses={weeklyStatuses}
+                streak={streakMap[member.id] ?? 0}
                 isFlipped={flippedSet.has(member.id)}
                 onFlip={() => toggleFlip(member.id)}
               />
@@ -196,12 +199,13 @@ function BatteryIcon({ pct }: { pct: number }) {
 // ── Member card ────────────────────────────────────────────
 
 function MemberCard({
-  member, goals, battery, weeklyStatuses, isFlipped, onFlip,
+  member, goals, battery, weeklyStatuses, streak, isFlipped, onFlip,
 }: {
   member: Member;
   goals: MemberGoals;
   battery: number;
   weeklyStatuses: WeeklyStatuses;
+  streak: number;
   isFlipped: boolean;
   onFlip: () => void;
 }) {
@@ -228,10 +232,18 @@ function MemberCard({
         >
           <div className="flex items-center justify-between px-5 pt-4 pb-4">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full ${avatarBg} flex items-center justify-center text-white font-bold text-[16px]`}>
+              <div className={`w-10 h-10 rounded-full ${avatarBg} flex items-center justify-center text-white font-bold text-[16px] shrink-0`}>
                 {member.name[0].toUpperCase()}
               </div>
-              <span className="text-foreground font-bold text-[18px]">{member.name}</span>
+              <div>
+                <span className="text-foreground font-bold text-[18px]">{member.name}</span>
+                {streak > 0 && (
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="text-[13px] leading-none">🔥</span>
+                    <span className="text-[12px] font-semibold text-muted-foreground">{streak} day streak</span>
+                  </div>
+                )}
+              </div>
             </div>
             {/* Clickable battery */}
             <button

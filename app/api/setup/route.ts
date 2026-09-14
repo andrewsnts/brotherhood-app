@@ -164,6 +164,28 @@ export async function POST() {
       ALTER TABLE events ADD COLUMN IF NOT EXISTS recurrence TEXT NOT NULL DEFAULT 'none'
     `;
 
+    // Seed morning check-in streaks (idempotent — ON CONFLICT DO NOTHING)
+    // Andrew: 5-day streak (Sep 8–11 + Sep 14)
+    for (const date of ["2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14"]) {
+      await sql`
+        INSERT INTO morning_checkins (member_id, date, checked_in_at)
+        SELECT id, ${date}, ${"2026-09-14T06:00:00Z"} FROM members WHERE LOWER(name) = 'andrew'
+        ON CONFLICT DO NOTHING
+      `;
+    }
+    // Kiem: 1-day streak (Sep 14)
+    await sql`
+      INSERT INTO morning_checkins (member_id, date, checked_in_at)
+      SELECT id, '2026-09-14', '2026-09-14T06:00:00Z' FROM members WHERE LOWER(name) = 'kiem'
+      ON CONFLICT DO NOTHING
+    `;
+    // Colm: 1-day streak (Sep 14)
+    await sql`
+      INSERT INTO morning_checkins (member_id, date, checked_in_at)
+      SELECT id, '2026-09-14', '2026-09-14T06:00:00Z' FROM members WHERE LOWER(name) = 'colm'
+      ON CONFLICT DO NOTHING
+    `;
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("setup error", err);

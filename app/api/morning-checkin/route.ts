@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
   const rows = await sql`
     SELECT date FROM morning_checkins WHERE member_id = ${memberId} ORDER BY date DESC
   `;
-  const streak = calcStreak(rows.map((r: { date: string }) => r.date));
+  const streak = calcStreak(rows.map((r) => r.date as string));
 
   return NextResponse.json({ ok: true, streak });
 }

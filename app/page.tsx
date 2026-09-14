@@ -261,13 +261,9 @@ function MemberCard({
 
           <Section label="QUARTERLY">
             {hasMonthly ? (
-              <ol className="space-y-2">
+              <ol className="space-y-2.5">
                 {goals.monthly.map((g, i) => g ? (
-                  <li key={i} className="flex items-start gap-2.5 text-[14px] text-content">
-                    <span className="text-dimmer shrink-0 w-4 mt-0.5">{i + 1}</span>
-                    <span className="flex-1">{g}</span>
-                    <GoalStatusDot status={goals.monthlyStatus?.[i] ?? "not_done"} />
-                  </li>
+                  <GoalListItem key={i} num={i + 1} text={g} status={goals.monthlyStatus?.[i] ?? "not_done"} />
                 ) : null)}
               </ol>
             ) : <NotSet />}
@@ -277,13 +273,9 @@ function MemberCard({
 
           <Section label="YEAR-END" last>
             {hasYearEnd ? (
-              <ol className="space-y-2">
+              <ol className="space-y-2.5">
                 {goals.yearEnd.map((g, i) => g ? (
-                  <li key={i} className="flex items-start gap-2.5 text-[14px] text-content">
-                    <span className="text-dimmer shrink-0 w-4 mt-0.5">{i + 1}.</span>
-                    <span className="flex-1">{g}</span>
-                    <GoalStatusDot status={goals.yearEndStatus?.[i] ?? "not_done"} />
-                  </li>
+                  <GoalListItem key={i} num={i + 1} text={g} status={goals.yearEndStatus?.[i] ?? "not_done"} />
                 ) : null)}
               </ol>
             ) : <NotSet />}
@@ -395,24 +387,28 @@ function GoalRow({ tier, text, color, status }: { tier: string; text: string; co
   );
 }
 
+function GoalListItem({ num, text, status }: { num: number; text: string; status: GoalStatus }) {
+  const isCompleted = status === "completed";
+  const isInProgress = status === "in_progress";
+  const textColor = isCompleted ? "#10b981" : isInProgress ? "#f59e0b" : "var(--content)";
+  return (
+    <li className="flex items-start gap-2">
+      <span className="text-dimmer shrink-0 w-4 mt-[3px] text-[13px]">{num}</span>
+      <div className="flex items-start gap-1.5 flex-1">
+        {isCompleted && (
+          <svg className="shrink-0 mt-[3px]" width="13" height="13" viewBox="0 0 24 24" fill="none"
+            stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
+        <span className="text-[14px] leading-snug" style={{ color: textColor }}>{text}</span>
+      </div>
+    </li>
+  );
+}
+
 function NotSet() {
   return <p className="text-[13px] text-placeholder">Not set</p>;
 }
 
-const STATUS_DOT: Record<GoalStatus, { color: string; title: string }> = {
-  completed:  { color: "#10b981", title: "Completed" },
-  in_progress: { color: "#f59e0b", title: "In Progress" },
-  not_done:   { color: "#4b5563", title: "Not Done" },
-};
 
-function GoalStatusDot({ status }: { status: GoalStatus }) {
-  const cfg = STATUS_DOT[status] ?? STATUS_DOT.not_done;
-  if (status === "not_done") return null; // hide when nothing set yet
-  return (
-    <span
-      title={cfg.title}
-      className="shrink-0 mt-1 w-2 h-2 rounded-full inline-block"
-      style={{ backgroundColor: cfg.color }}
-    />
-  );
-}

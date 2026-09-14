@@ -18,6 +18,38 @@ import {
 } from "@/lib/types";
 import { getMembers, getGoals, getLatestCheckInThisWeek, initDb } from "@/lib/api";
 
+// ── Week selector helpers ──────────────────────────────────
+
+function getMondayOfWeek(weekKey: string): Date {
+  const [yearStr, weekStr] = weekKey.split("-W");
+  const year = Number(yearStr);
+  const week = Number(weekStr);
+  const jan4 = new Date(year, 0, 4);
+  const dow = (jan4.getDay() + 6) % 7;
+  const monday = new Date(jan4);
+  monday.setDate(jan4.getDate() - dow + (week - 1) * 7);
+  return monday;
+}
+
+function buildWeekOptions(currentWeekKey: string): { weekKey: string; label: string }[] {
+  const cohortStart = new Date("2026-09-07T00:00:00");
+  const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const options: { weekKey: string; label: string }[] = [];
+  const cur = new Date(cohortStart);
+  // align to Monday of that week
+  const dow = (cur.getDay() + 6) % 7;
+  cur.setDate(cur.getDate() - dow);
+  while (getWeekKey(cur) <= currentWeekKey) {
+    const wk = getWeekKey(cur);
+    const sunday = new Date(cur);
+    sunday.setDate(sunday.getDate() + 6);
+    const tag = wk === currentWeekKey ? " (This week)" : "";
+    options.push({ weekKey: wk, label: `${fmt(cur)} – ${fmt(sunday)}${tag}` });
+    cur.setDate(cur.getDate() + 7);
+  }
+  return options.reverse();
+}
+
 type WeeklyStatuses = { primary: GoalStatus; secondary: GoalStatus; bonus: GoalStatus };
 const DEFAULT_STATUSES: WeeklyStatuses = { primary: "not_done", secondary: "not_done", bonus: "not_done" };
 
@@ -29,10 +61,14 @@ export default function GoalsBoard() {
   const [loading, setLoading] = useState(true);
   const [flippedSet, setFlippedSet] = useState<Set<string>>(new Set());
   const now = new Date();
-  const weekKey = getWeekKey(now);
-  const weekNum = getGroupWeekNumber(now);
+  const currentWeekKey = getWeekKey(now);
   const dayNum = getGroupDayNumber(now);
   const quarter = getQuarter(now);
+  const weekOptions = buildWeekOptions(currentWeekKey);
+
+  const [selectedWeekKey, setSelectedWeekKey] = useState(currentWeekKey);
+  const selectedMonday = getMondayOfWeek(selectedWeekKey);
+  const weekNum = getGroupWeekNumber(selectedMonday);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -49,9 +85,9 @@ export default function GoalsBoard() {
       const smap: Record<string, WeeklyStatuses> = {};
       await Promise.all(
         m.map(async (member) => {
-          const goals = await getGoals(member.id, weekKey);
+          const goals = await getGoals(member.id, selectedWeekKey);
           gmap[member.id] = goals;
-          const ci = await getLatestCheckInThisWeek(member.id, weekKey);
+          const ci = await getLatestCheckInThisWeek(member.id, selectedWeekKey);
           bmap[member.id] = ci ? ci.batteryPercent : calcBatteryPercent(goals.battery);
           smap[member.id] = ci
             ? { primary: ci.primaryStatus, secondary: ci.secondaryStatus, bonus: ci.bonusStatus }
@@ -64,7 +100,7 @@ export default function GoalsBoard() {
     } finally {
       setLoading(false);
     }
-  }, [weekKey]);
+  }, [selectedWeekKey]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -90,12 +126,22 @@ export default function GoalsBoard() {
 
         <div className="px-5 pt-4 pb-5">
           <h2 className="text-[32px] font-bold text-foreground leading-none">Goals Board</h2>
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
             <span className="text-[13px] text-muted-foreground">Week {weekNum}</span>
             <span className="text-dimmer">·</span>
             <span className="text-[13px] text-muted-foreground">Day {dayNum} / {COHORT_TOTAL_WEEKDAYS} days</span>
-            <span className="text-dimmer">·</span>
-            <span className="text-[13px] text-muted-foreground">All members</span>
+          </div>
+          <div className="mt-3">
+            <select
+              value={selectedWeekKey}
+              onChange={(e) => { setSelectedWeekKey(e.target.value); setFlippedSet(new Set()); }}
+              className="appearance-none bg-card border border-input rounded-xl px-3 py-2 pr-8 text-[13px] text-foreground outline-none focus:border-[#7c6af7] transition-colors cursor-pointer"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 10px center" }}
+            >
+              {weekOptions.map(({ weekKey: wk, label }) => (
+                <option key={wk} value={wk}>{label}</option>
+              ))}
+            </select>
           </div>
         </div>
 

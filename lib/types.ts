@@ -99,8 +99,8 @@ export function getWeekKey(date: Date): string {
   return `${d.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
 }
 
-// Group started March 30, 2026 — Week 1 = that week (Day 16 = April 14)
-const GROUP_START = new Date("2026-03-30T00:00:00");
+// Q4 cohort started September 7, 2026
+const GROUP_START = new Date("2026-09-07T00:00:00");
 
 export function getGroupWeekNumber(date: Date): number {
   const msPerWeek = 7 * 24 * 60 * 60 * 1000;
@@ -131,8 +131,12 @@ export function getWeekNumber(date: Date): number {
 }
 
 export function getQuarter(date: Date): string {
-  const q = Math.ceil((date.getMonth() + 1) / 3);
-  return `Q${q} ${date.getFullYear()}`;
+  const m = date.getMonth() + 1;
+  const y = date.getFullYear();
+  // Q4 cohort: September–October 2026
+  if (y === 2026 && (m === 9 || m === 10)) return "Q4 2026";
+  const q = Math.ceil(m / 3);
+  return `Q${q} ${y}`;
 }
 
 export function calcBatteryPercent(scores: BatteryScores): number {

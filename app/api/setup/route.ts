@@ -164,27 +164,24 @@ export async function POST() {
       ALTER TABLE events ADD COLUMN IF NOT EXISTS recurrence TEXT NOT NULL DEFAULT 'none'
     `;
 
-    // Seed morning check-in streaks (idempotent — ON CONFLICT DO NOTHING)
-    // Andrew: 5-day streak (Sep 8–11 + Sep 14)
-    for (const date of ["2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14"]) {
-      await sql`
-        INSERT INTO morning_checkins (member_id, date, checked_in_at)
-        SELECT id, ${date}, ${"2026-09-14T06:00:00Z"} FROM members WHERE LOWER(name) = 'andrew'
-        ON CONFLICT DO NOTHING
-      `;
+    // Seed morning check-in streaks — look up each member ID, then insert with VALUES
+    const streakSeeds: { name: string; dates: string[] }[] = [
+      { name: "andrew", dates: ["2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14"] },
+      { name: "kiem",   dates: ["2026-09-14"] },
+      { name: "colm",   dates: ["2026-09-14"] },
+    ];
+    for (const { name, dates } of streakSeeds) {
+      const found = await sql`SELECT id FROM members WHERE LOWER(name) = ${name} LIMIT 1`;
+      if (found.length === 0) continue;
+      const memberId = found[0].id as string;
+      for (const date of dates) {
+        await sql`
+          INSERT INTO morning_checkins (member_id, date, checked_in_at)
+          VALUES (${memberId}, ${date}, '2026-09-14T06:00:00Z')
+          ON CONFLICT (member_id, date) DO NOTHING
+        `;
+      }
     }
-    // Kiem: 1-day streak (Sep 14)
-    await sql`
-      INSERT INTO morning_checkins (member_id, date, checked_in_at)
-      SELECT id, '2026-09-14', '2026-09-14T06:00:00Z' FROM members WHERE LOWER(name) = 'kiem'
-      ON CONFLICT DO NOTHING
-    `;
-    // Colm: 1-day streak (Sep 14)
-    await sql`
-      INSERT INTO morning_checkins (member_id, date, checked_in_at)
-      SELECT id, '2026-09-14', '2026-09-14T06:00:00Z' FROM members WHERE LOWER(name) = 'colm'
-      ON CONFLICT DO NOTHING
-    `;
 
     return NextResponse.json({ ok: true });
   } catch (err) {

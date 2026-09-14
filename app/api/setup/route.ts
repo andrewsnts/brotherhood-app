@@ -123,17 +123,6 @@ export async function POST() {
     `;
 
     await sql`
-      CREATE TABLE IF NOT EXISTS iron_john_journals (
-        id TEXT PRIMARY KEY,
-        member_id TEXT NOT NULL,
-        part_id INTEGER NOT NULL,
-        reflection TEXT NOT NULL DEFAULT '',
-        practice_note TEXT NOT NULL DEFAULT '',
-        completed_at TEXT
-      )
-    `;
-
-    await sql`
       CREATE TABLE IF NOT EXISTS resources (
         id TEXT PRIMARY KEY,
         member_id TEXT NOT NULL,

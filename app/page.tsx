@@ -53,12 +53,15 @@ function buildWeekOptions(currentWeekKey: string): { weekKey: string; label: str
 type WeeklyStatuses = { primary: GoalStatus; secondary: GoalStatus; bonus: GoalStatus };
 const DEFAULT_STATUSES: WeeklyStatuses = { primary: "not_done", secondary: "not_done", bonus: "not_done" };
 
+type Reflection = { whyMissed: string; wins: string; feeling: string };
+
 export default function GoalsBoard() {
   const [members, setMembers] = useState<Member[]>([]);
   const [goalsMap, setGoalsMap] = useState<Record<string, MemberGoals>>({});
   const [batteryMap, setBatteryMap] = useState<Record<string, number>>({});
   const [statusMap, setStatusMap] = useState<Record<string, WeeklyStatuses>>({});
   const [streakMap, setStreakMap] = useState<Record<string, number>>({});
+  const [reflectionMap, setReflectionMap] = useState<Record<string, Reflection>>({});
   const [loading, setLoading] = useState(true);
   const [flippedSet, setFlippedSet] = useState<Set<string>>(new Set());
   const now = new Date();
@@ -85,6 +88,7 @@ export default function GoalsBoard() {
       const gmap: Record<string, MemberGoals> = {};
       const bmap: Record<string, number> = {};
       const smap: Record<string, WeeklyStatuses> = {};
+      const rmap: Record<string, Reflection> = {};
       await Promise.all(
         m.map(async (member) => {
           const goals = await getGoals(member.id, selectedWeekKey);
@@ -94,11 +98,15 @@ export default function GoalsBoard() {
           smap[member.id] = ci
             ? { primary: ci.primaryStatus, secondary: ci.secondaryStatus, bonus: ci.bonusStatus }
             : { ...DEFAULT_STATUSES };
+          rmap[member.id] = ci
+            ? { whyMissed: ci.whyMissed, wins: ci.wins, feeling: ci.feeling }
+            : { whyMissed: "", wins: "", feeling: "" };
         })
       );
       setGoalsMap(gmap);
       setBatteryMap(bmap);
       setStatusMap(smap);
+      setReflectionMap(rmap);
     } finally {
       setLoading(false);
     }
@@ -164,6 +172,7 @@ export default function GoalsBoard() {
                 battery={battery}
                 weeklyStatuses={weeklyStatuses}
                 streak={streakMap[member.id] ?? 0}
+                reflection={reflectionMap[member.id] ?? { whyMissed: "", wins: "", feeling: "" }}
                 isFlipped={flippedSet.has(member.id)}
                 onFlip={() => toggleFlip(member.id)}
               />
@@ -199,13 +208,14 @@ function BatteryIcon({ pct }: { pct: number }) {
 // ── Member card ────────────────────────────────────────────
 
 function MemberCard({
-  member, goals, battery, weeklyStatuses, streak, isFlipped, onFlip,
+  member, goals, battery, weeklyStatuses, streak, reflection, isFlipped, onFlip,
 }: {
   member: Member;
   goals: MemberGoals;
   battery: number;
   weeklyStatuses: WeeklyStatuses;
   streak: number;
+  reflection: Reflection;
   isFlipped: boolean;
   onFlip: () => void;
 }) {
@@ -215,6 +225,7 @@ function MemberCard({
   const hasMonthly = goals.monthly.some((g) => g);
   const hasYearEnd = goals.yearEnd.some((g) => g);
   const hasWeekly = goals.primary || goals.secondary || goals.bonus;
+  const hasReflection = reflection.wins || reflection.whyMissed || reflection.feeling;
 
   return (
     <div className="h-full" style={{ perspective: "1000px" }}>
@@ -283,7 +294,7 @@ function MemberCard({
 
           <div className="h-px bg-border mx-5" />
 
-          <Section label="YEAR-END" last>
+          <Section label="YEAR-END" last={!hasReflection}>
             {hasYearEnd ? (
               <ol className="space-y-2.5">
                 {goals.yearEnd.map((g, i) => g ? (
@@ -292,6 +303,34 @@ function MemberCard({
               </ol>
             ) : <NotSet />}
           </Section>
+
+          {hasReflection && (
+            <>
+              <div className="h-px bg-border mx-5" />
+              <Section label="FRIDAY REFLECTION" last>
+                <div className="space-y-3">
+                  {reflection.wins && (
+                    <div>
+                      <p className="text-[10px] font-semibold text-dimmer uppercase tracking-wider mb-1">Wins</p>
+                      <p className="text-[13px] leading-snug text-content">{reflection.wins}</p>
+                    </div>
+                  )}
+                  {reflection.whyMissed && (
+                    <div>
+                      <p className="text-[10px] font-semibold text-dimmer uppercase tracking-wider mb-1">Why missed</p>
+                      <p className="text-[13px] leading-snug text-content">{reflection.whyMissed}</p>
+                    </div>
+                  )}
+                  {reflection.feeling && (
+                    <div>
+                      <p className="text-[10px] font-semibold text-dimmer uppercase tracking-wider mb-1">Feeling</p>
+                      <p className="text-[13px] leading-snug text-content">{reflection.feeling}</p>
+                    </div>
+                  )}
+                </div>
+              </Section>
+            </>
+          )}
         </div>
 
         {/* ── Back ── */}

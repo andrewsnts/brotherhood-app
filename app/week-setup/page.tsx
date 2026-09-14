@@ -606,7 +606,7 @@ export default function WeekSetupPage() {
                     </Section>
 
                     {/* ── Reflection ── */}
-                    <Section label="WEEKLY REFLECTION">
+                    <Section label="FRIDAY WEEKLY REFLECTION">
                       <div className="space-y-3">
                         <ReflectionField
                           label="Why missed?"

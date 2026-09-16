@@ -167,7 +167,7 @@ export async function POST() {
     // Seed morning check-in streaks — look up each member ID, then insert with VALUES
     const streakSeeds: { name: string; dates: string[] }[] = [
       { name: "andrew", dates: ["2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14"] },
-      { name: "kiem",   dates: ["2026-09-14"] },
+      { name: "kiem",   dates: ["2026-09-10","2026-09-11","2026-09-14"] },
       { name: "colm",   dates: ["2026-09-14"] },
     ];
     for (const { name, dates } of streakSeeds) {

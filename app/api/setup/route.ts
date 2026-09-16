@@ -164,10 +164,17 @@ export async function POST() {
       ALTER TABLE events ADD COLUMN IF NOT EXISTS recurrence TEXT NOT NULL DEFAULT 'none'
     `;
 
+    // Remove extra seeded date from Kiem to keep streak at 3
+    const kiemRow = await sql`SELECT id FROM members WHERE LOWER(name) = 'kiem' LIMIT 1`;
+    if (kiemRow.length > 0) {
+      const kiemId = kiemRow[0].id as string;
+      await sql`DELETE FROM morning_checkins WHERE member_id = ${kiemId} AND date = '2026-09-10'`;
+    }
+
     // Seed morning check-in streaks — look up each member ID, then insert with VALUES
     const streakSeeds: { name: string; dates: string[] }[] = [
       { name: "andrew", dates: ["2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14"] },
-      { name: "kiem",   dates: ["2026-09-10","2026-09-11","2026-09-14"] },
+      { name: "kiem",   dates: ["2026-09-11","2026-09-14"] },
       { name: "colm",   dates: ["2026-09-14"] },
     ];
     for (const { name, dates } of streakSeeds) {

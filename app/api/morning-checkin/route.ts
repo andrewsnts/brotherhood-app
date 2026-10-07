@@ -1,12 +1,20 @@
 import { sql } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
-function calcStreak(descDates: string[]): number {
+// Streak starts from the most recent weekday (today, or last Friday on weekends).
+// If that weekday has no check-in, streak is 0 — missed days reset to zero.
+function calcStreak(descDates: string[], today: string): number {
   if (descDates.length === 0) return 0;
   const dateSet = new Set(descDates);
+  // Find the most recent weekday anchor
+  let cur = new Date(today + "T12:00:00Z");
+  for (let i = 0; i < 7; i++) {
+    const dow = cur.getUTCDay();
+    if (dow !== 0 && dow !== 6) break;
+    cur.setUTCDate(cur.getUTCDate() - 1);
+  }
+  // Walk backward counting consecutive weekdays present in the set
   let streak = 0;
-  // Start from most recent check-in, walk backward skipping weekends
-  let cur = new Date(descDates[0] + "T12:00:00Z");
   for (let i = 0; i < 300; i++) {
     const dow = cur.getUTCDay();
     if (dow === 0 || dow === 6) { cur.setUTCDate(cur.getUTCDate() - 1); continue; }
@@ -33,7 +41,7 @@ export async function GET() {
   const todayCheckins: string[] = [];
 
   for (const [memberId, dates] of Object.entries(byMember)) {
-    streaks[memberId] = calcStreak(dates);
+    streaks[memberId] = calcStreak(dates, today);
     if (dates[0] === today) todayCheckins.push(memberId);
   }
 
@@ -55,7 +63,8 @@ export async function POST(req: NextRequest) {
   const rows = await sql`
     SELECT date FROM morning_checkins WHERE member_id = ${memberId} ORDER BY date DESC
   `;
-  const streak = calcStreak(rows.map((r) => r.date as string));
+  const postToday = new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+  const streak = calcStreak(rows.map((r) => r.date as string), postToday);
 
   return NextResponse.json({ ok: true, streak });
 }

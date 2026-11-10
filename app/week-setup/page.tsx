@@ -7,12 +7,10 @@ import {
   MemberGoals,
   DailyCheckIn,
   GoalStatus,
-  BatteryScores,
-  BATTERY_LABELS,
+  Habit,
   AVATAR_BG,
   MEMBER_COLORS,
   getWeekKey,
-  calcBatteryPercent,
 } from "@/lib/types";
 import {
   getMembers,
@@ -218,7 +216,7 @@ export default function WeekSetupPage() {
           id: `${selectedId}-${checkInDate}`,
           date: checkInDate,
           memberId: selectedId,
-          batteryPercent: calcBatteryPercent(goals.battery),
+          batteryPercent: 0,
           primaryStatus,
           secondaryStatus,
           bonusStatus,
@@ -310,8 +308,20 @@ export default function WeekSetupPage() {
     });
   }
 
-  function setBattery(key: keyof BatteryScores, val: number) {
-    setGoals((g) => g ? { ...g, battery: { ...g.battery, [key]: val } } : g);
+  function setHabitName(i: number, name: string) {
+    setGoals((g) => {
+      if (!g) return g;
+      const habits = g.habits.map((h, idx) => idx === i ? { ...h, name } : h);
+      return { ...g, habits };
+    });
+  }
+
+  function toggleHabit(i: number) {
+    setGoals((g) => {
+      if (!g) return g;
+      const habits = g.habits.map((h, idx) => idx === i ? { ...h, done: !h.done } : h);
+      return { ...g, habits };
+    });
   }
 
   // ── Check-in field helpers ────────────────────────────
@@ -333,7 +343,6 @@ export default function WeekSetupPage() {
   // ── Render ─────────────────────────────────────────────
 
   const selectedMember = members.find((m) => m.id === selectedId);
-  const batteryPct = goals ? calcBatteryPercent(goals.battery) : 0;
 
   const tierConfig = {
     primary:   { color: "#7c6af7", status: primaryStatus,   setStatus: (v: GoalStatus) => handleStatusChange(setPrimaryStatus, v) },
@@ -587,18 +596,31 @@ export default function WeekSetupPage() {
                       </div>
                     </Section>
 
-                    {/* ── Battery ── */}
-                    <Section label={`ENTREPRENEURIAL BATTERY — ${batteryPct}%`}>
-                      <div className="space-y-3">
-                        {(Object.keys(BATTERY_LABELS) as (keyof BatteryScores)[]).map((key) => (
-                          <div key={key}>
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[12px] text-muted-foreground">{BATTERY_LABELS[key]}</span>
-                              <span className="text-[12px] font-bold text-foreground">{goals.battery[key]}</span>
-                            </div>
-                            <input type="range" min={1} max={10} value={goals.battery[key]}
-                              onChange={(e) => setBattery(key, Number(e.target.value))}
-                              className="w-full accent-[#7c6af7] h-1.5"
+                    {/* ── Habit Tracker ── */}
+                    <Section label="HABIT TRACKER">
+                      <div className="space-y-2">
+                        {goals.habits.map((habit: Habit, i: number) => (
+                          <div key={i} className="flex items-center gap-3">
+                            <button
+                              onClick={() => toggleHabit(i)}
+                              className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center border-2 transition-colors ${
+                                habit.done
+                                  ? "bg-emerald-500 border-emerald-500"
+                                  : "border-input hover:border-[#7c6af7]"
+                              }`}
+                            >
+                              {habit.done && (
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              )}
+                            </button>
+                            <input
+                              type="text"
+                              value={habit.name}
+                              onChange={(e) => setHabitName(i, e.target.value)}
+                              placeholder={`Habit ${i + 1}...`}
+                              className="flex-1 bg-transparent text-[14px] text-foreground placeholder:text-placeholder outline-none border-b border-transparent focus:border-input transition-colors py-0.5"
                             />
                           </div>
                         ))}

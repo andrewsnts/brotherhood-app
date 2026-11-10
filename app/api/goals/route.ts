@@ -1,5 +1,17 @@
 import { sql } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { DEFAULT_HABITS } from "@/lib/types";
+
+function parseHabits(raw: unknown) {
+  if (Array.isArray(raw) && raw.length > 0) return raw;
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch { /* fall through */ }
+  }
+  return DEFAULT_HABITS.map((h) => ({ ...h }));
+}
 
 // GET /api/goals?memberId=xxx&weekKey=2026-W14
 export async function GET(req: NextRequest) {
@@ -16,7 +28,7 @@ export async function GET(req: NextRequest) {
       SELECT * FROM member_goals WHERE member_id = ${memberId} AND week_key = ${weekKey} LIMIT 1
     `;
 
-    // No goals for this week — inherit monthly/yearEnd from most recent previous week
+    // No goals for this week — inherit monthly/yearEnd/habits from most recent previous week
     if (rows.length === 0) {
       const prev = await sql`
         SELECT * FROM member_goals
@@ -43,17 +55,7 @@ export async function GET(req: NextRequest) {
           p.monthly_2_status ?? "not_done",
           p.monthly_3_status ?? "not_done",
         ],
-        battery: {
-          purposeClarity: p.battery_purpose_clarity,
-          timeManagement: p.battery_time_management,
-          personalGrowth: p.battery_personal_growth,
-          fitness: p.battery_fitness,
-          nutrition: p.battery_nutrition,
-          sleep: p.battery_sleep,
-          community: p.battery_community,
-          family: p.battery_family,
-          financialWellbeing: p.battery_financial_wellbeing,
-        },
+        habits: parseHabits(p.habits),
       });
     }
 
@@ -76,17 +78,7 @@ export async function GET(req: NextRequest) {
         r.monthly_2_status ?? "not_done",
         r.monthly_3_status ?? "not_done",
       ],
-      battery: {
-        purposeClarity: r.battery_purpose_clarity,
-        timeManagement: r.battery_time_management,
-        personalGrowth: r.battery_personal_growth,
-        fitness: r.battery_fitness,
-        nutrition: r.battery_nutrition,
-        sleep: r.battery_sleep,
-        community: r.battery_community,
-        family: r.battery_family,
-        financialWellbeing: r.battery_financial_wellbeing,
-      },
+      habits: parseHabits(r.habits),
     });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
@@ -103,6 +95,7 @@ export async function POST(req: NextRequest) {
     const safeStatus = (v: unknown) => (yes.includes(v as string) ? v : "not_done");
     const [yes1, yes2, yes3] = (g.yearEndStatus ?? []).map(safeStatus);
     const [mon1, mon2, mon3] = (g.monthlyStatus ?? []).map(safeStatus);
+    const habitsJson = JSON.stringify(g.habits ?? []);
 
     await sql`
       INSERT INTO member_goals (
@@ -112,9 +105,7 @@ export async function POST(req: NextRequest) {
         year_end_1_status, year_end_2_status, year_end_3_status,
         monthly_1, monthly_2, monthly_3,
         monthly_1_status, monthly_2_status, monthly_3_status,
-        battery_purpose_clarity, battery_time_management, battery_personal_growth,
-        battery_fitness, battery_nutrition, battery_sleep,
-        battery_community, battery_family, battery_financial_wellbeing
+        habits
       ) VALUES (
         ${id}, ${g.memberId}, ${g.weekKey},
         ${g.primary}, ${g.secondary}, ${g.bonus},
@@ -122,9 +113,7 @@ export async function POST(req: NextRequest) {
         ${yes1}, ${yes2}, ${yes3},
         ${g.monthly[0]}, ${g.monthly[1]}, ${g.monthly[2]},
         ${mon1}, ${mon2}, ${mon3},
-        ${g.battery.purposeClarity}, ${g.battery.timeManagement}, ${g.battery.personalGrowth},
-        ${g.battery.fitness}, ${g.battery.nutrition}, ${g.battery.sleep},
-        ${g.battery.community}, ${g.battery.family}, ${g.battery.financialWellbeing}
+        ${habitsJson}
       )
       ON CONFLICT (id) DO UPDATE SET
         primary_goal = ${g.primary},
@@ -134,15 +123,7 @@ export async function POST(req: NextRequest) {
         year_end_1_status = ${yes1}, year_end_2_status = ${yes2}, year_end_3_status = ${yes3},
         monthly_1 = ${g.monthly[0]}, monthly_2 = ${g.monthly[1]}, monthly_3 = ${g.monthly[2]},
         monthly_1_status = ${mon1}, monthly_2_status = ${mon2}, monthly_3_status = ${mon3},
-        battery_purpose_clarity = ${g.battery.purposeClarity},
-        battery_time_management = ${g.battery.timeManagement},
-        battery_personal_growth = ${g.battery.personalGrowth},
-        battery_fitness = ${g.battery.fitness},
-        battery_nutrition = ${g.battery.nutrition},
-        battery_sleep = ${g.battery.sleep},
-        battery_community = ${g.battery.community},
-        battery_family = ${g.battery.family},
-        battery_financial_wellbeing = ${g.battery.financialWellbeing}
+        habits = ${habitsJson}
     `;
 
     return NextResponse.json({ ok: true });

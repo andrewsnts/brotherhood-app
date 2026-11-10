@@ -5,16 +5,14 @@ import BottomNav from "@/components/BottomNav";
 import {
   Member,
   MemberGoals,
-  BatteryScores,
+  Habit,
   GoalStatus,
-  BATTERY_LABELS,
   AVATAR_BG,
   getWeekKey,
   getGroupWeekNumber,
   getGroupDayNumber,
   COHORT_TOTAL_WEEKDAYS,
   getQuarter,
-  calcBatteryPercent,
 } from "@/lib/types";
 import { getMembers, getGoals, getLatestCheckInThisWeek, getMorningStreaks, initDb } from "@/lib/api";
 
@@ -58,7 +56,6 @@ type Reflection = { whyMissed: string; wins: string; feeling: string };
 export default function GoalsBoard() {
   const [members, setMembers] = useState<Member[]>([]);
   const [goalsMap, setGoalsMap] = useState<Record<string, MemberGoals>>({});
-  const [batteryMap, setBatteryMap] = useState<Record<string, number>>({});
   const [statusMap, setStatusMap] = useState<Record<string, WeeklyStatuses>>({});
   const [streakMap, setStreakMap] = useState<Record<string, number>>({});
   const [reflectionMap, setReflectionMap] = useState<Record<string, Reflection>>({});
@@ -86,7 +83,6 @@ export default function GoalsBoard() {
       setMembers(m);
       setStreakMap(morningData.streaks);
       const gmap: Record<string, MemberGoals> = {};
-      const bmap: Record<string, number> = {};
       const smap: Record<string, WeeklyStatuses> = {};
       const rmap: Record<string, Reflection> = {};
       await Promise.all(
@@ -94,7 +90,6 @@ export default function GoalsBoard() {
           const goals = await getGoals(member.id, selectedWeekKey);
           gmap[member.id] = goals;
           const ci = await getLatestCheckInThisWeek(member.id, selectedWeekKey);
-          bmap[member.id] = ci ? ci.batteryPercent : calcBatteryPercent(goals.battery);
           smap[member.id] = ci
             ? { primary: ci.primaryStatus, secondary: ci.secondaryStatus, bonus: ci.bonusStatus }
             : { ...DEFAULT_STATUSES };
@@ -104,7 +99,6 @@ export default function GoalsBoard() {
         })
       );
       setGoalsMap(gmap);
-      setBatteryMap(bmap);
       setStatusMap(smap);
       setReflectionMap(rmap);
     } finally {
@@ -161,7 +155,6 @@ export default function GoalsBoard() {
           )}
           {!loading && members.map((member) => {
             const goals = goalsMap[member.id];
-            const battery = batteryMap[member.id] ?? 0;
             const weeklyStatuses = statusMap[member.id] ?? DEFAULT_STATUSES;
             if (!goals) return null;
             return (
@@ -169,7 +162,6 @@ export default function GoalsBoard() {
                 key={member.id}
                 member={member}
                 goals={goals}
-                battery={battery}
                 weeklyStatuses={weeklyStatuses}
                 streak={streakMap[member.id] ?? 0}
                 reflection={reflectionMap[member.id] ?? { whyMissed: "", wins: "", feeling: "" }}
@@ -192,27 +184,13 @@ export default function GoalsBoard() {
   );
 }
 
-// ── Battery icon ───────────────────────────────────────────
-
-function BatteryIcon({ pct }: { pct: number }) {
-  const fillW = Math.round((pct / 100) * 20);
-  return (
-    <svg width="26" height="13" viewBox="0 0 26 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0.5" y="0.5" width="22" height="12" rx="2.5" stroke="currentColor" strokeWidth="1.2" />
-      <rect x="23" y="4" width="3" height="5" rx="1" fill="currentColor" />
-      <rect x="2" y="2" width={fillW} height="9" rx="1.5" fill="currentColor" />
-    </svg>
-  );
-}
-
 // ── Member card ────────────────────────────────────────────
 
 function MemberCard({
-  member, goals, battery, weeklyStatuses, streak, reflection, isFlipped, onFlip,
+  member, goals, weeklyStatuses, streak, reflection, isFlipped, onFlip,
 }: {
   member: Member;
   goals: MemberGoals;
-  battery: number;
   weeklyStatuses: WeeklyStatuses;
   streak: number;
   reflection: Reflection;
@@ -220,12 +198,13 @@ function MemberCard({
   onFlip: () => void;
 }) {
   const avatarBg = AVATAR_BG[member.color] ?? "bg-indigo-600";
-  const batteryColor =
-    battery >= 75 ? "#eab308" : battery >= 50 ? "#f59e0b" : battery >= 30 ? "#f97316" : "#ef4444";
   const hasMonthly = goals.monthly.some((g) => g);
   const hasYearEnd = goals.yearEnd.some((g) => g);
   const hasWeekly = goals.primary || goals.secondary || goals.bonus;
   const hasReflection = reflection.wins || reflection.whyMissed || reflection.feeling;
+  const habits: Habit[] = goals.habits ?? [];
+  const doneCount = habits.filter((h) => h.done).length;
+  const totalHabits = habits.length;
 
   return (
     <div className="h-full" style={{ perspective: "1000px" }}>
@@ -256,16 +235,25 @@ function MemberCard({
                 )}
               </div>
             </div>
-            {/* Clickable battery */}
-            <button
-              onClick={onFlip}
-              className="flex items-center gap-1.5 hover:opacity-70 transition-opacity cursor-pointer"
-              style={{ color: batteryColor }}
-              title="View battery breakdown"
-            >
-              <BatteryIcon pct={battery} />
-              <span className="font-bold text-[18px]">{battery}%</span>
-            </button>
+            {/* Habits summary — click to flip */}
+            {totalHabits > 0 && (
+              <button
+                onClick={onFlip}
+                className="flex flex-col items-end gap-1 hover:opacity-70 transition-opacity cursor-pointer"
+                title="View habits"
+              >
+                <span className="text-[13px] font-bold text-foreground">{doneCount}/{totalHabits}</span>
+                <div className="flex gap-0.5 flex-wrap justify-end max-w-[72px]">
+                  {habits.map((h, i) => (
+                    <div
+                      key={i}
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: h.done ? "#10b981" : "var(--muted)" }}
+                    />
+                  ))}
+                </div>
+              </button>
+            )}
           </div>
 
           <div className="h-px bg-border mx-5" />
@@ -333,12 +321,11 @@ function MemberCard({
           )}
         </div>
 
-        {/* ── Back ── */}
+        {/* ── Back: Habits detail ── */}
         <div
           className="absolute inset-0 rounded-2xl bg-card overflow-hidden flex flex-col"
           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
         >
-          {/* Header */}
           <div className="flex items-center justify-between px-5 pt-4 pb-4">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-full ${avatarBg} flex items-center justify-center text-white font-bold text-[16px]`}>
@@ -346,7 +333,7 @@ function MemberCard({
               </div>
               <div>
                 <p className="text-foreground font-bold text-[16px]">{member.name}</p>
-                <p className="text-[11px] text-muted-foreground">Battery breakdown</p>
+                <p className="text-[11px] text-muted-foreground">{doneCount}/{totalHabits} habits done</p>
               </div>
             </div>
             <button
@@ -363,39 +350,26 @@ function MemberCard({
 
           <div className="h-px bg-border mx-5" />
 
-          {/* Battery categories */}
-          <div className="px-5 py-4 flex-1 flex flex-col justify-between">
-            <div className="space-y-3">
-              {(Object.keys(BATTERY_LABELS) as (keyof BatteryScores)[]).map((key) => {
-                const score = goals.battery[key] ?? 0;
-                const barColor =
-                  score >= 8 ? "#eab308" : score >= 6 ? "#f59e0b" : score >= 4 ? "#f97316" : "#ef4444";
-                return (
-                  <div key={key} className="flex items-center gap-3">
-                    <span className="text-[12px] text-content flex-1 leading-tight">{BATTERY_LABELS[key]}</span>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{ width: `${score * 10}%`, backgroundColor: barColor }}
-                        />
-                      </div>
-                      <span className="text-[13px] font-bold text-foreground w-4 text-right">{score}</span>
-                    </div>
+          <div className="px-5 py-4 flex-1 overflow-y-auto">
+            <div className="space-y-2.5">
+              {habits.map((h: Habit, i: number) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div
+                    className={`w-5 h-5 rounded-full shrink-0 flex items-center justify-center ${
+                      h.done ? "bg-emerald-500" : "bg-muted"
+                    }`}
+                  >
+                    {h.done && (
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="h-px bg-border mx-5" />
-
-          {/* Total */}
-          <div className="px-5 py-3 flex items-center justify-between">
-            <span className="text-[12px] font-bold text-dimmer tracking-widest uppercase">Total</span>
-            <div className="flex items-center gap-1.5" style={{ color: batteryColor }}>
-              <BatteryIcon pct={battery} />
-              <span className="text-[18px] font-bold">{battery}%</span>
+                  <span className={`text-[13px] leading-snug ${h.done ? "text-foreground" : "text-muted-foreground"}`}>
+                    {h.name || `Habit ${i + 1}`}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

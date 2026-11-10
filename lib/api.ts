@@ -1,4 +1,4 @@
-import { Member, MemberGoals, DailyCheckIn, DEFAULT_BATTERY, MEMBER_COLORS } from "./types";
+import { Member, MemberGoals, DailyCheckIn, DEFAULT_HABITS, MEMBER_COLORS } from "./types";
 
 // ── Members ──────────────────────────────────────────────────────────────────
 
@@ -53,7 +53,7 @@ export async function getGoals(memberId: string, weekKey: string): Promise<Membe
       yearEndStatus: ["not_done", "not_done", "not_done"],
       monthly: ["", "", ""],
       monthlyStatus: ["not_done", "not_done", "not_done"],
-      battery: { ...DEFAULT_BATTERY },
+      habits: DEFAULT_HABITS.map((h) => ({ ...h })),
     };
   }
   return data;

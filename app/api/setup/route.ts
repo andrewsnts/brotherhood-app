@@ -99,6 +99,9 @@ export async function POST() {
       )
     `;
 
+    // Add habits column to existing member_goals table if missing
+    await sql`ALTER TABLE member_goals ADD COLUMN IF NOT EXISTS habits JSONB DEFAULT '[]'`;
+
     // Add status columns to existing member_goals table if missing
     await sql`ALTER TABLE member_goals ADD COLUMN IF NOT EXISTS year_end_1_status TEXT NOT NULL DEFAULT 'not_done'`;
     await sql`ALTER TABLE member_goals ADD COLUMN IF NOT EXISTS year_end_2_status TEXT NOT NULL DEFAULT 'not_done'`;

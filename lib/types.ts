@@ -4,29 +4,23 @@ export interface Member {
   color: string; // 'indigo' | 'purple' | 'blue' | 'rose' | 'amber' | 'emerald'
 }
 
-export interface BatteryScores {
-  purposeClarity: number;
-  timeManagement: number;
-  personalGrowth: number;
-  fitness: number;
-  nutrition: number;
-  sleep: number;
-  community: number;
-  family: number;
-  financialWellbeing: number;
+export interface Habit {
+  name: string;
+  done: boolean;
 }
 
-export const BATTERY_LABELS: Record<keyof BatteryScores, string> = {
-  purposeClarity: "Purpose/Clarity",
-  timeManagement: "Time Management",
-  personalGrowth: "Personal Growth",
-  fitness: "Fitness",
-  nutrition: "Nutrition",
-  sleep: "Sleep",
-  community: "Community",
-  family: "Family",
-  financialWellbeing: "Financial Wellbeing",
-};
+export const DEFAULT_HABITS: Habit[] = [
+  { name: "Exercise / Workout", done: false },
+  { name: "Meditate", done: false },
+  { name: "Cold Shower", done: false },
+  { name: "Read 30 min", done: false },
+  { name: "No Social Media", done: false },
+  { name: "Healthy Eating", done: false },
+  { name: "8 Hours Sleep", done: false },
+  { name: "Deep Work Block", done: false },
+  { name: "Journal", done: false },
+  { name: "Hydration (8 glasses)", done: false },
+];
 
 export type GoalStatus = "completed" | "in_progress" | "not_done";
 
@@ -40,14 +34,14 @@ export interface MemberGoals {
   yearEndStatus: [GoalStatus, GoalStatus, GoalStatus];
   monthly: [string, string, string];
   monthlyStatus: [GoalStatus, GoalStatus, GoalStatus];
-  battery: BatteryScores;
+  habits: Habit[];
 }
 
 export interface DailyCheckIn {
   id: string;
   date: string; // "2026-01-14"
   memberId: string;
-  batteryPercent: number;
+  batteryPercent: number; // kept for DB backwards-compat, always 0 now
   primaryStatus: GoalStatus;
   secondaryStatus: GoalStatus;
   bonusStatus: GoalStatus;
@@ -151,21 +145,3 @@ export function getQuarter(date: Date): string {
   const q = Math.ceil(m / 3);
   return `Q${q} ${y}`;
 }
-
-export function calcBatteryPercent(scores: BatteryScores): number {
-  const vals = Object.values(scores);
-  const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-  return Math.round((avg / 10) * 100);
-}
-
-export const DEFAULT_BATTERY: BatteryScores = {
-  purposeClarity: 7,
-  timeManagement: 7,
-  personalGrowth: 7,
-  fitness: 7,
-  nutrition: 7,
-  sleep: 7,
-  community: 7,
-  family: 7,
-  financialWellbeing: 7,
-};

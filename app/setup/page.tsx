@@ -8,6 +8,7 @@ import {
   Member,
   MemberGoals,
   Habit,
+  DAY_LABELS,
   getWeekKey,
 } from "@/lib/types";
 import {
@@ -83,10 +84,15 @@ export default function SetupPage() {
     });
   }
 
-  function toggleHabit(i: number) {
+  function toggleHabitDay(habitIdx: number, dayIdx: number) {
     setGoals((g) => {
       if (!g) return g;
-      const habits = g.habits.map((h: Habit, idx: number) => idx === i ? { ...h, done: !h.done } : h);
+      const habits = g.habits.map((h: Habit, idx: number) => {
+        if (idx !== habitIdx) return h;
+        const days = [...(Array.isArray(h.days) && h.days.length === 7 ? h.days : Array(7).fill(false))];
+        days[dayIdx] = !days[dayIdx];
+        return { ...h, days };
+      });
       return { ...g, habits };
     });
   }
@@ -246,25 +252,44 @@ export default function SetupPage() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base text-white">Habit Tracker</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  {goals.habits.map((habit: Habit, i: number) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <button
-                        onClick={() => toggleHabit(i)}
-                        className={`w-5 h-5 rounded-full shrink-0 border-2 flex items-center justify-center transition-colors ${
-                          habit.done ? "bg-yellow-400 border-yellow-400" : "border-gray-600"
-                        }`}
-                      >
-                        {habit.done && <span className="text-gray-900 text-[10px] font-bold">✓</span>}
-                      </button>
-                      <Input
-                        value={habit.name}
-                        onChange={(e) => setHabitName(i, e.target.value)}
-                        placeholder={`Habit ${i + 1}...`}
-                        className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 text-sm h-8"
-                      />
+                <CardContent>
+                  {/* Day label header */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex-1" />
+                    <div className="flex gap-1 shrink-0">
+                      {DAY_LABELS.map((d, i) => (
+                        <div key={i} className="w-6 text-center text-[10px] font-semibold text-gray-500">{d}</div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                  <div className="space-y-1.5">
+                    {goals.habits.map((habit: Habit, i: number) => {
+                      const days = Array.isArray(habit.days) && habit.days.length === 7 ? habit.days : Array(7).fill(false);
+                      return (
+                        <div key={i} className="flex items-center gap-2">
+                          <Input
+                            value={habit.name}
+                            onChange={(e) => setHabitName(i, e.target.value)}
+                            placeholder={`Habit ${i + 1}...`}
+                            className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 text-sm h-7 flex-1 min-w-0"
+                          />
+                          <div className="flex gap-1 shrink-0">
+                            {days.map((done: boolean, dayIdx: number) => (
+                              <button
+                                key={dayIdx}
+                                onClick={() => toggleHabitDay(i, dayIdx)}
+                                className={`w-6 h-6 rounded-md text-[10px] font-semibold transition-colors ${
+                                  done ? "bg-yellow-400 text-gray-900" : "bg-gray-700 text-gray-500 hover:bg-gray-600"
+                                }`}
+                              >
+                                {done ? "✓" : ""}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </CardContent>
               </Card>
 

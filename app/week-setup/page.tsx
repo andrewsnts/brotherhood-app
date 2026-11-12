@@ -8,6 +8,7 @@ import {
   DailyCheckIn,
   GoalStatus,
   Habit,
+  DAY_LABELS,
   AVATAR_BG,
   MEMBER_COLORS,
   getWeekKey,
@@ -316,10 +317,15 @@ export default function WeekSetupPage() {
     });
   }
 
-  function toggleHabit(i: number) {
+  function toggleHabitDay(habitIdx: number, dayIdx: number) {
     setGoals((g) => {
       if (!g) return g;
-      const habits = g.habits.map((h, idx) => idx === i ? { ...h, done: !h.done } : h);
+      const habits = g.habits.map((h, idx) => {
+        if (idx !== habitIdx) return h;
+        const days = [...(Array.isArray(h.days) && h.days.length === 7 ? h.days : Array(7).fill(false))];
+        days[dayIdx] = !days[dayIdx];
+        return { ...h, days };
+      });
       return { ...g, habits };
     });
   }
@@ -598,32 +604,45 @@ export default function WeekSetupPage() {
 
                     {/* ── Habit Tracker ── */}
                     <Section label="HABIT TRACKER">
-                      <div className="space-y-2">
-                        {goals.habits.map((habit: Habit, i: number) => (
-                          <div key={i} className="flex items-center gap-3">
-                            <button
-                              onClick={() => toggleHabit(i)}
-                              className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center border-2 transition-colors ${
-                                habit.done
-                                  ? "bg-emerald-500 border-emerald-500"
-                                  : "border-input hover:border-[#7c6af7]"
-                              }`}
-                            >
-                              {habit.done && (
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                              )}
-                            </button>
-                            <input
-                              type="text"
-                              value={habit.name}
-                              onChange={(e) => setHabitName(i, e.target.value)}
-                              placeholder={`Habit ${i + 1}...`}
-                              className="flex-1 bg-transparent text-[14px] text-foreground placeholder:text-placeholder outline-none border-b border-transparent focus:border-input transition-colors py-0.5"
-                            />
-                          </div>
-                        ))}
+                      {/* Day column headers */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex-1" />
+                        <div className="flex gap-1 shrink-0">
+                          {DAY_LABELS.map((d, idx) => (
+                            <div key={idx} className="w-6 text-center text-[10px] font-semibold text-muted-foreground">{d}</div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        {goals.habits.map((habit: Habit, i: number) => {
+                          const days = Array.isArray(habit.days) && habit.days.length === 7 ? habit.days : Array(7).fill(false);
+                          return (
+                            <div key={i} className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={habit.name}
+                                onChange={(e) => setHabitName(i, e.target.value)}
+                                placeholder={`Habit ${i + 1}...`}
+                                className="flex-1 min-w-0 bg-transparent text-[13px] text-foreground placeholder:text-placeholder outline-none border-b border-transparent focus:border-input transition-colors py-0.5"
+                              />
+                              <div className="flex gap-1 shrink-0">
+                                {days.map((done: boolean, dayIdx: number) => (
+                                  <button
+                                    key={dayIdx}
+                                    onClick={() => toggleHabitDay(i, dayIdx)}
+                                    className={`w-6 h-6 rounded-md text-[10px] font-semibold transition-colors ${
+                                      done
+                                        ? "bg-emerald-500 text-white"
+                                        : "bg-background border border-input text-muted-foreground hover:border-[#7c6af7]"
+                                    }`}
+                                  >
+                                    {done ? "✓" : ""}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </Section>
 

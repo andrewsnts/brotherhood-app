@@ -6,20 +6,22 @@ export interface Member {
 
 export interface Habit {
   name: string;
-  done: boolean;
+  days: boolean[]; // 7 elements: Mon=0 … Sun=6
 }
 
+export const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
+
 export const DEFAULT_HABITS: Habit[] = [
-  { name: "Exercise / Workout", done: false },
-  { name: "Meditate", done: false },
-  { name: "Cold Shower", done: false },
-  { name: "Read 30 min", done: false },
-  { name: "No Social Media", done: false },
-  { name: "Healthy Eating", done: false },
-  { name: "8 Hours Sleep", done: false },
-  { name: "Deep Work Block", done: false },
-  { name: "Journal", done: false },
-  { name: "Hydration (8 glasses)", done: false },
+  { name: "Exercise / Workout", days: Array(7).fill(false) },
+  { name: "Meditate", days: Array(7).fill(false) },
+  { name: "Cold Shower", days: Array(7).fill(false) },
+  { name: "Read 30 min", days: Array(7).fill(false) },
+  { name: "No Social Media", days: Array(7).fill(false) },
+  { name: "Healthy Eating", days: Array(7).fill(false) },
+  { name: "8 Hours Sleep", days: Array(7).fill(false) },
+  { name: "Deep Work Block", days: Array(7).fill(false) },
+  { name: "Journal", days: Array(7).fill(false) },
+  { name: "Hydration (8 glasses)", days: Array(7).fill(false) },
 ];
 
 export type GoalStatus = "completed" | "in_progress" | "not_done";

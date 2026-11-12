@@ -6,6 +6,7 @@ import {
   Member,
   MemberGoals,
   Habit,
+  DAY_LABELS,
   GoalStatus,
   AVATAR_BG,
   getWeekKey,
@@ -203,8 +204,8 @@ function MemberCard({
   const hasWeekly = goals.primary || goals.secondary || goals.bonus;
   const hasReflection = reflection.wins || reflection.whyMissed || reflection.feeling;
   const habits: Habit[] = goals.habits ?? [];
-  const doneCount = habits.filter((h) => h.done).length;
-  const totalHabits = habits.length;
+  const doneCount = habits.reduce((sum, h) => sum + (Array.isArray(h.days) ? h.days.filter(Boolean).length : 0), 0);
+  const totalCount = habits.length * 7;
 
   return (
     <div className="h-full" style={{ perspective: "1000px" }}>
@@ -236,21 +237,26 @@ function MemberCard({
               </div>
             </div>
             {/* Habits summary — click to flip */}
-            {totalHabits > 0 && (
+            {habits.length > 0 && (
               <button
                 onClick={onFlip}
                 className="flex flex-col items-end gap-1 hover:opacity-70 transition-opacity cursor-pointer"
                 title="View habits"
               >
-                <span className="text-[13px] font-bold text-foreground">{doneCount}/{totalHabits}</span>
-                <div className="flex gap-0.5 flex-wrap justify-end max-w-[72px]">
-                  {habits.map((h, i) => (
-                    <div
-                      key={i}
-                      className="w-2.5 h-2.5 rounded-full"
-                      style={{ backgroundColor: h.done ? "#10b981" : "var(--muted)" }}
-                    />
-                  ))}
+                <span className="text-[11px] font-bold text-foreground">{doneCount}/{totalCount}</span>
+                {/* 10-row × 7-col dot grid */}
+                <div className="flex flex-col gap-px">
+                  {habits.map((h, hi) => {
+                    const days = Array.isArray(h.days) && h.days.length === 7 ? h.days : Array(7).fill(false);
+                    return (
+                      <div key={hi} className="flex gap-px">
+                        {days.map((done: boolean, di: number) => (
+                          <div key={di} className="w-1.5 h-1.5 rounded-sm"
+                            style={{ backgroundColor: done ? "#10b981" : "var(--muted)" }} />
+                        ))}
+                      </div>
+                    );
+                  })}
                 </div>
               </button>
             )}
@@ -333,7 +339,7 @@ function MemberCard({
               </div>
               <div>
                 <p className="text-foreground font-bold text-[16px]">{member.name}</p>
-                <p className="text-[11px] text-muted-foreground">{doneCount}/{totalHabits} habits done</p>
+                <p className="text-[11px] text-muted-foreground">{doneCount}/{totalCount} habit days done</p>
               </div>
             </div>
             <button
@@ -351,25 +357,38 @@ function MemberCard({
           <div className="h-px bg-border mx-5" />
 
           <div className="px-5 py-4 flex-1 overflow-y-auto">
-            <div className="space-y-2.5">
-              {habits.map((h: Habit, i: number) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div
-                    className={`w-5 h-5 rounded-full shrink-0 flex items-center justify-center ${
-                      h.done ? "bg-emerald-500" : "bg-muted"
-                    }`}
-                  >
-                    {h.done && (
-                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
+            {/* Day label header */}
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex-1" />
+              <div className="flex gap-1 shrink-0">
+                {DAY_LABELS.map((d, i) => (
+                  <div key={i} className="w-5 text-center text-[9px] font-semibold text-muted-foreground">{d}</div>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              {habits.map((h: Habit, hi: number) => {
+                const days = Array.isArray(h.days) && h.days.length === 7 ? h.days : Array(7).fill(false);
+                const anyDone = days.some(Boolean);
+                return (
+                  <div key={hi} className="flex items-center gap-2">
+                    <span className={`flex-1 text-[12px] leading-snug ${anyDone ? "text-foreground" : "text-muted-foreground"}`}>
+                      {h.name || `Habit ${hi + 1}`}
+                    </span>
+                    <div className="flex gap-1 shrink-0">
+                      {days.map((done: boolean, di: number) => (
+                        <div key={di} className={`w-5 h-5 rounded-md flex items-center justify-center ${done ? "bg-emerald-500" : "bg-muted"}`}>
+                          {done && (
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <span className={`text-[13px] leading-snug ${h.done ? "text-foreground" : "text-muted-foreground"}`}>
-                    {h.name || `Habit ${i + 1}`}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

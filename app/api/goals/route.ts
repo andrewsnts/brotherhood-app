@@ -3,14 +3,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { DEFAULT_HABITS } from "@/lib/types";
 
 function parseHabits(raw: unknown) {
-  if (Array.isArray(raw) && raw.length > 0) return raw;
-  if (typeof raw === "string") {
+  let arr: unknown[] | null = null;
+  if (Array.isArray(raw) && raw.length > 0) arr = raw;
+  else if (typeof raw === "string") {
     try {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) arr = parsed;
     } catch { /* fall through */ }
   }
-  return DEFAULT_HABITS.map((h) => ({ ...h }));
+  if (!arr) return DEFAULT_HABITS.map((h) => ({ ...h }));
+  // Migrate old shape {name, done} → {name, days}
+  return arr.map((h: unknown) => {
+    const habit = h as Record<string, unknown>;
+    return {
+      name: typeof habit.name === "string" ? habit.name : "",
+      days: Array.isArray(habit.days) && habit.days.length === 7
+        ? habit.days
+        : Array(7).fill(false),
+    };
+  });
 }
 
 // GET /api/goals?memberId=xxx&weekKey=2026-W14

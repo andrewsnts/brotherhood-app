@@ -7,6 +7,13 @@ import {
   getWeekKey,
 } from "./types";
 
+function migrateHabit(h: Record<string, unknown>) {
+  return {
+    name: typeof h.name === "string" ? h.name : "",
+    days: Array.isArray(h.days) && h.days.length === 7 ? h.days : Array(7).fill(false),
+  };
+}
+
 const KEYS = {
   members: "bh_members",
   goals: "bh_goals",

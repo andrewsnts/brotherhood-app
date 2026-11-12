@@ -7,10 +7,8 @@ import { Input } from "@/components/ui/input";
 import {
   Member,
   MemberGoals,
-  BatteryScores,
-  BATTERY_LABELS,
+  Habit,
   getWeekKey,
-  calcBatteryPercent,
 } from "@/lib/types";
 import {
   getMembers,
@@ -85,10 +83,19 @@ export default function SetupPage() {
     });
   }
 
-  function updateBattery(key: keyof BatteryScores, value: number) {
+  function toggleHabit(i: number) {
     setGoals((g) => {
       if (!g) return g;
-      return { ...g, battery: { ...g.battery, [key]: value } };
+      const habits = g.habits.map((h: Habit, idx: number) => idx === i ? { ...h, done: !h.done } : h);
+      return { ...g, habits };
+    });
+  }
+
+  function setHabitName(i: number, name: string) {
+    setGoals((g) => {
+      if (!g) return g;
+      const habits = g.habits.map((h: Habit, idx: number) => idx === i ? { ...h, name } : h);
+      return { ...g, habits };
     });
   }
 
@@ -97,8 +104,6 @@ export default function SetupPage() {
       saveGoals(goals);
     }
   }
-
-  const batteryPct = goals ? calcBatteryPercent(goals.battery) : 0;
 
   return (
     <main className="min-h-screen bg-gray-950 text-white px-4 py-8">
@@ -236,41 +241,30 @@ export default function SetupPage() {
                 </Card>
               </div>
 
-              {/* Entrepreneurial Battery */}
+              {/* Habit Tracker */}
               <Card className="bg-gray-900 border-gray-700">
                 <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base text-white">
-                      Entrepreneurial Battery
-                    </CardTitle>
-                    <span className="text-2xl font-bold text-yellow-400">
-                      {batteryPct}%
-                    </span>
-                  </div>
+                  <CardTitle className="text-base text-white">Habit Tracker</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {(Object.keys(BATTERY_LABELS) as (keyof BatteryScores)[]).map(
-                    (key) => (
-                      <div key={key} className="flex items-center gap-3">
-                        <span className="text-xs text-gray-400 w-36 shrink-0">
-                          {BATTERY_LABELS[key]}
-                        </span>
-                        <input
-                          type="range"
-                          min={1}
-                          max={10}
-                          value={goals.battery[key]}
-                          onChange={(e) =>
-                            updateBattery(key, Number(e.target.value))
-                          }
-                          className="flex-1 accent-yellow-400"
-                        />
-                        <span className="text-xs w-4 text-right text-gray-300">
-                          {goals.battery[key]}
-                        </span>
-                      </div>
-                    )
-                  )}
+                <CardContent className="space-y-2">
+                  {goals.habits.map((habit: Habit, i: number) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <button
+                        onClick={() => toggleHabit(i)}
+                        className={`w-5 h-5 rounded-full shrink-0 border-2 flex items-center justify-center transition-colors ${
+                          habit.done ? "bg-yellow-400 border-yellow-400" : "border-gray-600"
+                        }`}
+                      >
+                        {habit.done && <span className="text-gray-900 text-[10px] font-bold">✓</span>}
+                      </button>
+                      <Input
+                        value={habit.name}
+                        onChange={(e) => setHabitName(i, e.target.value)}
+                        placeholder={`Habit ${i + 1}...`}
+                        className="bg-gray-800 border-gray-600 text-white placeholder:text-gray-500 text-sm h-8"
+                      />
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
 

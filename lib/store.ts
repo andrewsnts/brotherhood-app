@@ -2,7 +2,7 @@ import {
   Member,
   MemberGoals,
   DailyCheckIn,
-  DEFAULT_BATTERY,
+  DEFAULT_HABITS,
   MEMBER_COLORS,
   getWeekKey,
 } from "./types";
@@ -55,17 +55,7 @@ export function seedIfEmpty() {
       "Posted MDMA video for Qi",
     ],
     monthlyStatus: ["not_done", "not_done", "not_done"],
-    battery: {
-      purposeClarity: 8,
-      timeManagement: 6,
-      personalGrowth: 7,
-      fitness: 6,
-      nutrition: 6,
-      sleep: 9,
-      community: 9,
-      family: 8,
-      financialWellbeing: 9,
-    },
+    habits: DEFAULT_HABITS.map((h) => ({ ...h })),
   };
 
   const kiemGoals: MemberGoals = {
@@ -78,7 +68,7 @@ export function seedIfEmpty() {
     yearEndStatus: ["not_done", "not_done", "not_done"],
     monthly: ["", "", ""],
     monthlyStatus: ["not_done", "not_done", "not_done"],
-    battery: { ...DEFAULT_BATTERY },
+    habits: DEFAULT_HABITS.map((h) => ({ ...h })),
   };
 
   save(KEYS.goals, [andrewGoals, kiemGoals]);
@@ -148,7 +138,7 @@ export function getOrCreateGoals(
       yearEndStatus: ["not_done", "not_done", "not_done"],
       monthly: ["", "", ""],
       monthlyStatus: ["not_done", "not_done", "not_done"],
-      battery: { ...DEFAULT_BATTERY },
+      habits: DEFAULT_HABITS.map((h) => ({ ...h })),
     }
   );
 }

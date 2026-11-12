@@ -4,15 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { use } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import BatteryGauge from "@/components/BatteryGauge";
 import CheckInLog from "@/components/CheckInLog";
 import {
   Member,
   MemberGoals,
-  BATTERY_LABELS,
-  BatteryScores,
+  Habit,
   getWeekKey,
-  calcBatteryPercent,
 } from "@/lib/types";
 import { getMembers, getOrCreateGoals, getCheckInHistory } from "@/lib/store";
 
@@ -53,8 +50,6 @@ export default function MemberPage({
     );
   }
 
-  const batteryPct = goals ? calcBatteryPercent(goals.battery) : 0;
-
   return (
     <main className="min-h-screen bg-gray-950 text-white px-4 py-8">
       <div className="max-w-3xl mx-auto">
@@ -73,40 +68,33 @@ export default function MemberPage({
         </div>
 
         <div className="space-y-5">
-          {/* Battery */}
-          <Card className="bg-gray-900 border-gray-700">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base text-white">Entrepreneurial Battery</CardTitle>
-                <BatteryGauge percent={batteryPct} />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
-                {goals &&
-                  (Object.keys(BATTERY_LABELS) as (keyof BatteryScores)[]).map(
-                    (key) => (
-                      <div key={key} className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400 w-36 shrink-0">
-                          {BATTERY_LABELS[key]}
-                        </span>
-                        <div className="flex-1 bg-gray-700 rounded-full h-1.5">
-                          <div
-                            className="h-1.5 rounded-full bg-yellow-400"
-                            style={{
-                              width: `${(goals.battery[key] / 10) * 100}%`,
-                            }}
-                          />
-                        </div>
-                        <span className="text-xs text-gray-300 w-4 text-right">
-                          {goals.battery[key]}
-                        </span>
+          {/* Habits */}
+          {goals && goals.habits.length > 0 && (
+            <Card className="bg-gray-900 border-gray-700">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base text-white">Habit Tracker</CardTitle>
+                  <span className="text-sm text-yellow-400 font-semibold">
+                    {goals.habits.filter((h: Habit) => h.done).length}/{goals.habits.length}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+                  {goals.habits.map((h: Habit, i: number) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded-full shrink-0 flex items-center justify-center ${h.done ? "bg-yellow-400" : "bg-gray-700"}`}>
+                        {h.done && <span className="text-gray-900 text-[9px] font-bold">✓</span>}
                       </div>
-                    )
-                  )}
-              </div>
-            </CardContent>
-          </Card>
+                      <span className={`text-sm ${h.done ? "text-white" : "text-gray-500"}`}>
+                        {h.name || `Habit ${i + 1}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Goals */}
           {goals && (

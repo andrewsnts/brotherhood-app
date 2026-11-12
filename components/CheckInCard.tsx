@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Member, MemberGoals, DailyCheckIn, GoalStatus, calcBatteryPercent } from "@/lib/types";
+import { Member, MemberGoals, DailyCheckIn, GoalStatus } from "@/lib/types";
 import { saveCheckIn, getCheckInForMemberToday } from "@/lib/store";
 
 interface Props {
@@ -32,8 +32,8 @@ export default function CheckInCard({ member, goals, today, onSaved }: Props) {
       setWins(existing.wins);
       setFeeling(existing.feeling);
       setSaved(true);
-    } else if (goals) {
-      setBatteryPercent(calcBatteryPercent(goals.battery));
+    } else {
+      setBatteryPercent(0);
     }
   }, [member.id, today, goals]);
 
